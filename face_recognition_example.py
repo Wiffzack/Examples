@@ -25,7 +25,7 @@ from pycaw.pycaw import AudioUtilities, ISimpleAudioVolume
 video_capture = cv2.VideoCapture(0)
 
 # Load a sample picture and learn how to recognize it.
-your_image = face_recognition.load_image_file("C:/Users/Gregor/Desktop/python/foto1.jpg")
+your_image = face_recognition.load_image_file("C:/Users/****/Desktop/python/foto1.jpg")
 obama_face_encoding = face_recognition.face_encodings(your_image)[0]
 
 # Initialize some variables

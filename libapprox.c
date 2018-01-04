@@ -1,5 +1,10 @@
-# sudo gcc -c libapprox.c
-# sudo ar –crv libapprox.a libapprox.o
+//# sudo gcc -c libapprox.c
+//# sudo ar crv libapprox.a libapprox.o
+
+#define __SSE__ 1
+#define __SSE2__ 1
+#define __SSE2_MATH__ 1
+#define __SSE_MATH__ 1
 
 #if defined (__has_include) && (__has_include(<x86intrin.h>))
 #include <x86intrin.h>
@@ -7,12 +12,26 @@
 #error "Upgrade your Systen please thx..."
 #endif
 
-//double sina (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
-//double cosa (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
-double exp (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
-double pow (double,double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
-float atan (float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
-float atan2 (float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+double ceil(double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float acos(float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float asin(float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float sinh(float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+double tanh (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+double log(double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float sqrt(float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float min(float, float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float max(float, float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float rcp(float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+double sin (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+double cos (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+double tan (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+double cot (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+double expa (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+double powa (double,double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float atana (float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float atan2a (float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float sqrt(float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float rsqrt(float ) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
 
 #define packed_double(x) {(x), (x)}
 
@@ -54,14 +73,14 @@ inline float acos(float inX)
 	s = -0.2121144f * x1 + 1.5707288f;
 	s = 0.0742610f * x2 + s;
 	s = -0.0187293f * x3 + s;
-	s = sqrt2(1.0f - x1) * s;
+	s = sqrt(1.0f - x1) * s;
 	return inX >= 0.0f ? s : fsl_PI - s;
 }
 
 inline float asin(float inX)
 {
 	float x = inX;
-	return fsl_HALF_PI - acosa(x);
+	return fsl_HALF_PI - acos(x);
 }
 
 inline float sinh(float x)
@@ -77,7 +96,6 @@ inline double tanh (double x)
 inline double exp(double a)
 {
   const int i[2] = { 1512775,1072632447 };
-  //const int q=1512775,w=1072632447;
   __builtin_prefetch(&i,1,1); 
   union { double d; int x[2]; } u;
   u.x[1] = (int) (i[0] * a + i[1]);
@@ -87,7 +105,6 @@ inline double exp(double a)
 
 double log(double a) 
 {
-  //const int i[2] = { 1512775,1072632447 };
   union { double d; long long x; } u = { a };
   return (u.x - 4607182418800017409) * 1.539095918623324e-16; /* 1 / 6497320848556798.0; */
 }
@@ -100,7 +117,6 @@ inline double pow(double a, double b)
   u.x[0] = 0;
   return u.d;
 }
-//#endif
 
 float rsqrt(float x)
 {
@@ -117,6 +133,7 @@ float atan(float inX)
 	float  x = inX;
 	return x*(-0.1784f * abs(x) - 0.0663f * x * x + 1.0301f);
 }
+
 
 float atan2( float y, float x )
 {
@@ -191,10 +208,23 @@ double sin(double x)
   return y* ( (1-i[1])  + y * i[1] );
 }
 
+
 double cos(double x)
 {
   double input = x;
   return sin(x+1.5708);
+}
+
+double tan(double x)
+{
+  double input = x;
+  return (sin(x)/cos(x));
+}
+
+double cot(double x)
+{
+  double input = x;
+  return (cos(x)/sin(x));
 }
 
 

@@ -32,6 +32,7 @@ float atana (float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")
 float atan2a (float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
 float sqrt(float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
 float rsqrt(float ) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float absa(float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
 
 #define packed_double(x) {(x), (x)}
 
@@ -66,7 +67,7 @@ float rcpNewtonRaphsona(float inX, float inRcpX)
 inline float acos(float inX)
 {
 	const float i[6] = { -0.0187293f,-0.2121144f,0.0742610f ,1.5707288f,1.0f,0.0f  };
-	float x1 = abs(inX);
+	float x1 = absa(inX);
 	float x2 = x1 * x1;
 	float x3 = x2 * x1;
 	float s;
@@ -133,7 +134,7 @@ float atan(float inX)
 {
 	const float i[3] = { -0.1784f,0.0663f,1.0301f };
 	float  x = inX;
-	return x*(i[0] * abs(x) - i[1] * x * x + i[2]);
+	return x*(i[0] * absa(x) - i[1] * x * x + i[2]);
 }
 
 
@@ -226,6 +227,12 @@ double cot(double x)
 {
   double input = x;
   return (cos(x)/sin(x));
+}
+
+float absa(float f) 
+{
+int i=((*(int*)&f)&0x7fffffff);
+return (*(float*)&i);
 }
 
 

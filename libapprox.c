@@ -65,16 +65,17 @@ float rcpNewtonRaphsona(float inX, float inRcpX)
 
 inline float acos(float inX)
 {
+	const float i[6] = { -0.0187293f,-0.2121144f,0.0742610f ,1.5707288f,1.0f,0.0f  };
 	float x1 = abs(inX);
 	float x2 = x1 * x1;
 	float x3 = x2 * x1;
 	float s;
 
-	s = -0.2121144f * x1 + 1.5707288f;
-	s = 0.0742610f * x2 + s;
-	s = -0.0187293f * x3 + s;
-	s = sqrt(1.0f - x1) * s;
-	return inX >= 0.0f ? s : fsl_PI - s;
+	s = i[1] * x1 + i[3];
+	s = i[2] * x2 + s;
+	s = i[0] * x3 + s;
+	s = sqrt(i[4] - x1) * s;
+	return inX >= i[5] ? s : fsl_PI - s;
 }
 
 inline float asin(float inX)
@@ -85,37 +86,37 @@ inline float asin(float inX)
 
 inline float sinh(float x)
 {
-  return 0.5 * (exp(x)-exp(-x));
+	return 0.5 * (exp(x)-exp(-x));
 }
 
 inline double tanh (double x)
 {
-  return -1.0f + 2.0f / (1.0f + exp (-2.0f * x));
+	return -1.0f + 2.0f / (1.0f + exp (-2.0f * x));
 }
 
 inline double exp(double a)
 {
-  const int i[2] = { 1512775,1072632447 };
-  __builtin_prefetch(&i,1,1); 
-  union { double d; int x[2]; } u;
-  u.x[1] = (int) (i[0] * a + i[1]);
-  u.x[0] = 0;
-  return u.d;
+	const int i[2] = { 1512775,1072632447 };
+	__builtin_prefetch(&i,1,1);
+	union { double d; int x[2]; } u;
+	u.x[1] = (int) (i[0] * a + i[1]);
+	u.x[0] = 0;
+	return u.d;
 }
 
 double log(double a) 
 {
-  union { double d; long long x; } u = { a };
-  return (u.x - 4607182418800017409) * 1.539095918623324e-16; /* 1 / 6497320848556798.0; */
+	union { double d; long long x; } u = { a };
+	return (u.x - 4607182418800017409) * 1.539095918623324e-16; /* 1 / 6497320848556798.0; */
 }
 
 
 inline double pow(double a, double b) 
 {
-  union { double d; int x[2]; } u = { a };
-  u.x[1] = (int)(b * (u.x[1] - 1072632447) + 1072632447);
-  u.x[0] = 0;
-  return u.d;
+	union { double d; int x[2]; } u = { a };
+	u.x[1] = (int)(b * (u.x[1] - 1072632447) + 1072632447);
+	u.x[0] = 0;
+	return u.d;
 }
 
 float rsqrt(float x)
@@ -130,8 +131,9 @@ return 1.0 / rsqrt(x);
 
 float atan(float inX)
 {
+	const float i[3] = { -0.1784f,0.0663f,1.0301f };
 	float  x = inX;
-	return x*(-0.1784f * abs(x) - 0.0663f * x * x + 1.0301f);
+	return x*(i[0] * abs(x) - i[1] * x * x + i[2]);
 }
 
 
@@ -201,13 +203,12 @@ return _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ss(op)));
 
 double sin(double x)
 {
-  double i[3] = {0.40528473456935108577551785283891,0.2248391013559941};
-  i[2] = x;
+  double i[5] = {0.40528473456935108577551785283891,0.2248391013559941,1};
+  i[3] = x;
   __builtin_prefetch(&i,1,1); 
-  double y = i[0]* i[2] * ( M_PI - i[2] );
-  return y* ( (1-i[1])  + y * i[1] );
+  double y = i[0]* i[3] * ( M_PI - i[3] );
+  return y* ( (i[2]-i[1])  + y * i[1] );
 }
-
 
 double cos(double x)
 {

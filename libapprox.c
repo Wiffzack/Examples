@@ -118,11 +118,6 @@ float atan(float inX)
 	return x*(-0.1784f * abs(x) - 0.0663f * x * x + 1.0301f);
 }
 
-
-//#define PI_FLOAT     3.14159265f
-//#define PIBY2_FLOAT  1.5707963f
-// |error| < 0.005
-//#pragma acc kernels
 float atan2( float y, float x )
 {
 	const float i[5] = { 3.14159265f,1.5707963f,0.0f,1.0f,0.28f };

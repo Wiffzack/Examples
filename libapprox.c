@@ -1,3 +1,6 @@
+# sudo gcc -c libapprox.c
+# sudo ar –crv libapprox.a libapprox.o
+
 #if defined (__has_include) && (__has_include(<x86intrin.h>))
 #include <x86intrin.h>
 #else
@@ -6,10 +9,10 @@
 
 //double sina (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
 //double cosa (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
-double expa (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
-double powa (double,double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
-float atana (float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
-float atan2a (float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+double exp (double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+double pow (double,double) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float atan (float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
+float atan2 (float) __attribute__ ((hot)) __attribute__ ((__target__ ("default")));
 
 #define packed_double(x) {(x), (x)}
 
@@ -41,7 +44,6 @@ float rcpNewtonRaphsona(float inX, float inRcpX)
 	return inRcpX * (-inRcpX * inX + 2.0f);
 }
 
-//#pragma acc kernels
 inline float acos(float inX)
 {
 	float x1 = abs(inX);
@@ -53,17 +55,12 @@ inline float acos(float inX)
 	s = 0.0742610f * x2 + s;
 	s = -0.0187293f * x3 + s;
 	s = sqrt2(1.0f - x1) * s;
-
-	// acos function mirroring
-	// check per platform if compiles to a selector - no branch neeeded
 	return inX >= 0.0f ? s : fsl_PI - s;
 }
 
 inline float asin(float inX)
 {
 	float x = inX;
-
-	// asin is offset of acos
 	return fsl_HALF_PI - acosa(x);
 }
 
@@ -88,7 +85,6 @@ inline double exp(double a)
   return u.d;
 }
 
-//#if !defined(log1)
 double log(double a) 
 {
   //const int i[2] = { 1512775,1072632447 };
@@ -191,12 +187,8 @@ float rcp(float op)
 return _mm_cvtss_f32(_mm_rcp_ss(_mm_set_ss(op))); 
 }
 
-
-//#pragma acc kernels
 double sin(double x)
 {
-  //const double A = 4.0/(M_PI*M_PI);
-  //const double P =  0.2248391013559941;
   double i[3] = {0.40528473456935108577551785283891,0.2248391013559941};
   i[2] = x;
   __builtin_prefetch(&i,1,1); 
@@ -204,11 +196,9 @@ double sin(double x)
   return y* ( (1-i[1])  + y * i[1] );
 }
 
-
 double cos(double x)
 {
   double input = x;
-  //input = sin(x+1.5708);
   return sin(x+1.5708);
 }
 

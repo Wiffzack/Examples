@@ -90,18 +90,11 @@ def handleMessage(msg):
 	#SELECT MAX(rating),keyword,address FROM pdf where keyword like 'Gradient';
 	def readdbentry(keyword):
 		global rows,test,keyw
-		#print ("hier----<<>><<>>")
-		#$sql = "SELECT address FROM pdf WHERE INSTR(keyword, ".$phpn.") LIMIT 3";
-		#$sql = "SELECT address FROM pdf WHERE INSTR(keyword, ".$phpn.") LIMIT 3";
 		sqln2 = '''SELECT MAX(rating),keyword,address FROM pdf WHERE INSTR(keyword, "string1") LIMIT 1; '''
-		#sqln2 = '''SELECT MAX(rating),keyword,address FROM pdf where keyword like 'string1'; '''
 		sqlcn = string.replace(sqln2,"string1", keyword);
 		try:
 			cursor.execute(sqlcn)
 			rows = cursor.fetchall()
-			#print ("hier----<<>><<>>")
-			#print (rows[0][2])
-			# require adaption!
 			cache = str(rows[0][2])
 			if  (cache == "None"):
 				return
@@ -131,7 +124,6 @@ def handleMessage(msg):
 		while True:
 			while workn:
 				time.sleep(1)
-				#print (msgl)
 				for x in msgl:
 					if x not in blockl:
 						t = threading.Thread(target=mainfunc,args=(x,))

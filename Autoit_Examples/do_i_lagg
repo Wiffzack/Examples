@@ -1,0 +1,77 @@
+;#AutoIt3Wrapper_UseUpx=n
+#include <AutoItConstants.au3>
+#include <ButtonConstants.au3>
+#include <ButtonConstants.au3>
+#include <ComboConstants.au3>
+#include <EditConstants.au3>
+#include <GUIConstantsEx.au3>
+#include <GuiStatusBar.au3>
+#include <GUIConstants.au3>
+#include <GDIplus.au3>
+#include <GUIConstants.au3>
+#include <MsgBoxConstants.au3>
+#Include <Date.au3>
+
+
+$x = 100
+$y = 70
+$text = ""
+$red = 0x8080ff ;red
+$green = 0x00ff00 ;greeen
+$color = 0x000000
+
+
+Global $_Timer = _NowCalc ( )
+Global $_Interval = 1
+
+
+$needed = 15 ;milisec
+
+While 1
+$start = TimerInit()
+
+
+TextOut($x,$y,$text)
+;don need to round cuz u only want the time elapsed?
+While 1
+$is_finished = TimerDiff($start)
+If $is_finished > $needed Then
+	;MsgBox($MB_SYSTEMMODAL, "Title", "This message box will timeout after 10 seconds or select the OK button.", 10)
+    changecolor()
+	ExitLoop
+EndIf
+WEnd
+WEnd
+
+
+Func changecolor()
+	$_NowCalc = _NowCalc ( )
+	If _DateDiff ( "n", $_Timer, $_NowCalc ) >= $_Interval Then  ; 5 min
+		Local $iPing = Ping("google.at", 120)
+		;Local $iPing2 = Ping("steamcommunity.com", 120)
+		; And $iPing2
+		If $iPing Then ; If a value greater than 0 was returned then display the following message.
+			$color = $green
+			$text = $iPing
+			;TextOut($x,$y,$text)
+			;MsgBox($MB_SYSTEMMODAL, "", "The roundtrip-time took: " & $iPing & "ms.")
+		Else
+			$color = $red
+			$text = $iPing
+			;TextOut($x,$y,$text)
+			;MsgBox($MB_SYSTEMMODAL, "", "An error occurred with @error value of: " & @error)
+		EndIf
+        $_Timer = $_NowCalc
+    EndIf
+	;Sleep(5000)
+EndFunc   ;==>Example
+
+Func TextOut($x,$y,$text)
+    $hdc = DllCall("user32.dll","int","GetDC","hwnd",0)
+    $hdc = $hdc[0]
+	;DllCall("gdi32","long","SetPixel", "long", $pixeldraw[0], "long", $xcoord, "long", $ycoord, "long", $color)
+	DllCall("gdi32.dll", "int", "SetBkColor", "hwnd", $hdc, "int", $color)
+	;DLLCall("gdi32.dll","int","SetTextColor", "hwnd", $hdc, "int", $color)
+    DllCall("gdi32.dll","int","TextOut","int",$hdc,"int",$x,"int",$y,"str",$text,"int",StringLen($text))
+    DllCall("user32.dll","int","ReleaseDC","hwnd",0,"int",$hdc)
+EndFunc

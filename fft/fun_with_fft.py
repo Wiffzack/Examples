@@ -36,7 +36,9 @@ if __name__ == '__main__':
     #even
     #ff[:,1::2] = 1 
     #odd
-    ff[::2,::2] = 1
+    #ff[::2,::2] = 1
+    ff[::2,1::2] = 0
+    ff[::2,::2] = 0	
     im_new = np.fft.ifft2(ff).real	
     im_new = cv2.convertScaleAbs(im_new)
     #im_new = cv.addWeighted(im_new, 0.2, im, 0.8, 0.0)

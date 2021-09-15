@@ -1626,9 +1626,9 @@ async function injectCanvas() {
     globalMovOrig = await getVideoTag()
 
     let div = globalMovOrig.parentElement
-    while(div.className!="bilibili-player-video") {
-        await new Promise(r => setTimeout(r, 500));
-    }
+    //while(div.className!="bilibili-player-video") {
+    //    await new Promise(r => setTimeout(r, 500));
+    //}
     div = globalMovOrig.parentElement
     div.style.backgroundColor = "black" // Patch for ACFun.
 

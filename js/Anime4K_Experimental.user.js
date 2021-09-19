@@ -1753,6 +1753,7 @@ function initev(){
 }
 
 (async function () {
+    alert("upscale load...");
     console.log('Bilibili_Anime4K starting...');
     await injectCanvas2();
     doFilter();

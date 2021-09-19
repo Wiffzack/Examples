@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name                Upscale Filter 4k
+// @name                Mod
 // @name:zh-CN          Bilibili Anime4K滤镜
 // @description         Bring Anime4K to Bilibili and ACFun's HTML5 player to clearify 2D anime.
 // @description:zh-CN   通过Anime4K滤镜让Bilibili和ACFun上的2D番剧更加清晰
@@ -18,6 +18,9 @@
 
 // WebGL implementation by NeuroWhAI.
 // https://github.com/bloc97/Anime4K/blob/master/web/main.js
+
+
+var videostream;
 
 function createShader(gl, type, source) {
     var shader = gl.createShader(type);
@@ -112,24 +115,20 @@ function bindFramebuffer(gl, framebuffer, texture) {
 
 const quadVert = `
 precision mediump float;
-
 attribute vec2 a_pos;
 varying vec2 v_tex_pos;
 void main ()
 {
   v_tex_pos = a_pos;
-  vec4 tmpvar_1;
+  highp vec4 tmpvar_1;
   tmpvar_1.zw = vec2(0.0, 1.0);
   tmpvar_1.xy = (1.0 - (2.0 * a_pos));
   gl_Position = tmpvar_1;
 }
-
-
 `;
 
 const scaleFrag = `
 precision mediump float;
-
 uniform sampler2D u_texture;
 uniform vec2 u_size;
 varying vec2 v_tex_pos;
@@ -149,7 +148,9 @@ void main ()
   vec2 tmpvar_6;
   tmpvar_6.x = 0.0;
   tmpvar_6.y = tmpvar_2.y;
-  gl_FragColor = mix (mix (texture2D (u_texture, tmpvar_3), texture2D (u_texture, (tmpvar_3 + tmpvar_5)), tmpvar_4.x), mix (texture2D (u_texture, (tmpvar_3 + tmpvar_6)), texture2D (u_texture, (tmpvar_3 + tmpvar_2)), tmpvar_4.x), tmpvar_4.y);
+  lowp vec4 tmpvar_7;
+  tmpvar_7 = mix (mix (texture2D (u_texture, tmpvar_3), texture2D (u_texture, (tmpvar_3 + tmpvar_5)), tmpvar_4.x), mix (texture2D (u_texture, (tmpvar_3 + tmpvar_6)), texture2D (u_texture, (tmpvar_3 + tmpvar_2)), tmpvar_4.x), tmpvar_4.y);
+  gl_FragColor = tmpvar_7;
 }
 
 
@@ -163,16 +164,16 @@ uniform vec2 u_pt;
 varying vec2 v_tex_pos;
 void main ()
 {
-  vec4 lightestColor_1;
-  vec4 tmpvar_2;
+  lowp vec4 lightestColor_1;
+  lowp vec4 tmpvar_2;
   tmpvar_2 = texture2D (scaled_texture, v_tex_pos);
-  float tmpvar_3;
+  lowp float tmpvar_3;
   tmpvar_3 = (((
     (tmpvar_2.x + tmpvar_2.x)
    + 
     (tmpvar_2.y + tmpvar_2.y)
   ) + (tmpvar_2.y + tmpvar_2.z)) / 6.0);
-  vec4 tmpvar_4;
+  lowp vec4 tmpvar_4;
   tmpvar_4.xyz = tmpvar_2.xyz;
   tmpvar_4.w = tmpvar_3;
   vec2 tmpvar_5;
@@ -182,9 +183,9 @@ void main ()
   tmpvar_5.y = tmpvar_6;
   vec2 pos_7;
   pos_7 = (v_tex_pos + tmpvar_5);
-  vec4 tmpvar_8;
+  lowp vec4 tmpvar_8;
   tmpvar_8 = texture2D (scaled_texture, pos_7);
-  vec4 tmpvar_9;
+  lowp vec4 tmpvar_9;
   tmpvar_9.xyz = texture2D (scaled_texture, pos_7).xyz;
   tmpvar_9.w = (((
     (tmpvar_8.x + tmpvar_8.x)
@@ -198,9 +199,9 @@ void main ()
   tmpvar_10.y = tmpvar_6;
   vec2 pos_12;
   pos_12 = (v_tex_pos + tmpvar_10);
-  vec4 tmpvar_13;
+  lowp vec4 tmpvar_13;
   tmpvar_13 = texture2D (scaled_texture, pos_12);
-  vec4 tmpvar_14;
+  lowp vec4 tmpvar_14;
   tmpvar_14.xyz = texture2D (scaled_texture, pos_12).xyz;
   tmpvar_14.w = (((
     (tmpvar_13.x + tmpvar_13.x)
@@ -212,9 +213,9 @@ void main ()
   tmpvar_15.y = tmpvar_6;
   vec2 pos_16;
   pos_16 = (v_tex_pos + tmpvar_15);
-  vec4 tmpvar_17;
+  lowp vec4 tmpvar_17;
   tmpvar_17 = texture2D (scaled_texture, pos_16);
-  vec4 tmpvar_18;
+  lowp vec4 tmpvar_18;
   tmpvar_18.xyz = texture2D (scaled_texture, pos_16).xyz;
   tmpvar_18.w = (((
     (tmpvar_17.x + tmpvar_17.x)
@@ -226,9 +227,9 @@ void main ()
   tmpvar_19.x = tmpvar_11;
   vec2 pos_20;
   pos_20 = (v_tex_pos + tmpvar_19);
-  vec4 tmpvar_21;
+  lowp vec4 tmpvar_21;
   tmpvar_21 = texture2D (scaled_texture, pos_20);
-  vec4 tmpvar_22;
+  lowp vec4 tmpvar_22;
   tmpvar_22.xyz = texture2D (scaled_texture, pos_20).xyz;
   tmpvar_22.w = (((
     (tmpvar_21.x + tmpvar_21.x)
@@ -240,9 +241,9 @@ void main ()
   tmpvar_23.x = u_pt.x;
   vec2 pos_24;
   pos_24 = (v_tex_pos + tmpvar_23);
-  vec4 tmpvar_25;
+  lowp vec4 tmpvar_25;
   tmpvar_25 = texture2D (scaled_texture, pos_24);
-  vec4 tmpvar_26;
+  lowp vec4 tmpvar_26;
   tmpvar_26.xyz = texture2D (scaled_texture, pos_24).xyz;
   tmpvar_26.w = (((
     (tmpvar_25.x + tmpvar_25.x)
@@ -254,9 +255,9 @@ void main ()
   tmpvar_27.y = u_pt.y;
   vec2 pos_28;
   pos_28 = (v_tex_pos + tmpvar_27);
-  vec4 tmpvar_29;
+  lowp vec4 tmpvar_29;
   tmpvar_29 = texture2D (scaled_texture, pos_28);
-  vec4 tmpvar_30;
+  lowp vec4 tmpvar_30;
   tmpvar_30.xyz = texture2D (scaled_texture, pos_28).xyz;
   tmpvar_30.w = (((
     (tmpvar_29.x + tmpvar_29.x)
@@ -268,9 +269,9 @@ void main ()
   tmpvar_31.y = u_pt.y;
   vec2 pos_32;
   pos_32 = (v_tex_pos + tmpvar_31);
-  vec4 tmpvar_33;
+  lowp vec4 tmpvar_33;
   tmpvar_33 = texture2D (scaled_texture, pos_32);
-  vec4 tmpvar_34;
+  lowp vec4 tmpvar_34;
   tmpvar_34.xyz = texture2D (scaled_texture, pos_32).xyz;
   tmpvar_34.w = (((
     (tmpvar_33.x + tmpvar_33.x)
@@ -279,9 +280,9 @@ void main ()
   ) + (tmpvar_33.y + tmpvar_33.z)) / 6.0);
   vec2 pos_35;
   pos_35 = (v_tex_pos + u_pt);
-  vec4 tmpvar_36;
+  lowp vec4 tmpvar_36;
   tmpvar_36 = texture2D (scaled_texture, pos_35);
-  vec4 tmpvar_37;
+  lowp vec4 tmpvar_37;
   tmpvar_37.xyz = texture2D (scaled_texture, pos_35).xyz;
   tmpvar_37.w = (((
     (tmpvar_36.x + tmpvar_36.x)
@@ -289,13 +290,13 @@ void main ()
     (tmpvar_36.y + tmpvar_36.y)
   ) + (tmpvar_36.y + tmpvar_36.z)) / 6.0);
   lightestColor_1 = tmpvar_4;
-  float tmpvar_38;
+  lowp float tmpvar_38;
   tmpvar_38 = max (max (tmpvar_37.w, tmpvar_30.w), tmpvar_34.w);
-  float tmpvar_39;
+  lowp float tmpvar_39;
   tmpvar_39 = min (min (tmpvar_14.w, tmpvar_9.w), tmpvar_18.w);
   if (((tmpvar_39 > tmpvar_3) && (tmpvar_39 > tmpvar_38))) {
-    vec4 tmpvar_40;
-    vec4 tmpvar_41;
+    lowp vec4 tmpvar_40;
+    lowp vec4 tmpvar_41;
     float tmpvar_42;
     tmpvar_42 = (u_scale / 6.0);
     tmpvar_41 = ((tmpvar_4 * (1.0 - 
@@ -310,13 +311,13 @@ void main ()
     };
     lightestColor_1 = tmpvar_40;
   } else {
-    float tmpvar_43;
+    lowp float tmpvar_43;
     tmpvar_43 = max (max (tmpvar_14.w, tmpvar_9.w), tmpvar_18.w);
-    float tmpvar_44;
+    lowp float tmpvar_44;
     tmpvar_44 = min (min (tmpvar_37.w, tmpvar_30.w), tmpvar_34.w);
     if (((tmpvar_44 > tmpvar_3) && (tmpvar_44 > tmpvar_43))) {
-      vec4 tmpvar_45;
-      vec4 tmpvar_46;
+      lowp vec4 tmpvar_45;
+      lowp vec4 tmpvar_46;
       float tmpvar_47;
       tmpvar_47 = (u_scale / 6.0);
       tmpvar_46 = ((tmpvar_4 * (1.0 - 
@@ -332,13 +333,13 @@ void main ()
       lightestColor_1 = tmpvar_45;
     };
   };
-  float tmpvar_48;
+  lowp float tmpvar_48;
   tmpvar_48 = max (max (tmpvar_3, tmpvar_22.w), tmpvar_30.w);
-  float tmpvar_49;
+  lowp float tmpvar_49;
   tmpvar_49 = min (min (tmpvar_26.w, tmpvar_9.w), tmpvar_18.w);
   if ((tmpvar_49 > tmpvar_48)) {
-    vec4 tmpvar_50;
-    vec4 tmpvar_51;
+    lowp vec4 tmpvar_50;
+    lowp vec4 tmpvar_51;
     float tmpvar_52;
     tmpvar_52 = (u_scale / 6.0);
     tmpvar_51 = ((tmpvar_4 * (1.0 - 
@@ -353,13 +354,13 @@ void main ()
     };
     lightestColor_1 = tmpvar_50;
   } else {
-    float tmpvar_53;
+    lowp float tmpvar_53;
     tmpvar_53 = max (max (tmpvar_3, tmpvar_26.w), tmpvar_9.w);
-    float tmpvar_54;
+    lowp float tmpvar_54;
     tmpvar_54 = min (min (tmpvar_34.w, tmpvar_22.w), tmpvar_30.w);
     if ((tmpvar_54 > tmpvar_53)) {
-      vec4 tmpvar_55;
-      vec4 tmpvar_56;
+      lowp vec4 tmpvar_55;
+      lowp vec4 tmpvar_56;
       float tmpvar_57;
       tmpvar_57 = (u_scale / 6.0);
       tmpvar_56 = ((tmpvar_4 * (1.0 - 
@@ -375,13 +376,13 @@ void main ()
       lightestColor_1 = tmpvar_55;
     };
   };
-  float tmpvar_58;
+  lowp float tmpvar_58;
   tmpvar_58 = max (max (tmpvar_22.w, tmpvar_14.w), tmpvar_34.w);
-  float tmpvar_59;
+  lowp float tmpvar_59;
   tmpvar_59 = min (min (tmpvar_26.w, tmpvar_37.w), tmpvar_18.w);
   if (((tmpvar_59 > tmpvar_3) && (tmpvar_59 > tmpvar_58))) {
-    vec4 tmpvar_60;
-    vec4 tmpvar_61;
+    lowp vec4 tmpvar_60;
+    lowp vec4 tmpvar_61;
     float tmpvar_62;
     tmpvar_62 = (u_scale / 6.0);
     tmpvar_61 = ((tmpvar_4 * (1.0 - 
@@ -396,13 +397,13 @@ void main ()
     };
     lightestColor_1 = tmpvar_60;
   } else {
-    float tmpvar_63;
+    lowp float tmpvar_63;
     tmpvar_63 = max (max (tmpvar_26.w, tmpvar_37.w), tmpvar_18.w);
-    float tmpvar_64;
+    lowp float tmpvar_64;
     tmpvar_64 = min (min (tmpvar_22.w, tmpvar_14.w), tmpvar_34.w);
     if (((tmpvar_64 > tmpvar_3) && (tmpvar_64 > tmpvar_63))) {
-      vec4 tmpvar_65;
-      vec4 tmpvar_66;
+      lowp vec4 tmpvar_65;
+      lowp vec4 tmpvar_66;
       float tmpvar_67;
       tmpvar_67 = (u_scale / 6.0);
       tmpvar_66 = ((tmpvar_4 * (1.0 - 
@@ -418,13 +419,13 @@ void main ()
       lightestColor_1 = tmpvar_65;
     };
   };
-  float tmpvar_68;
+  lowp float tmpvar_68;
   tmpvar_68 = max (max (tmpvar_3, tmpvar_22.w), tmpvar_9.w);
-  float tmpvar_69;
+  lowp float tmpvar_69;
   tmpvar_69 = min (min (tmpvar_26.w, tmpvar_37.w), tmpvar_30.w);
   if ((tmpvar_69 > tmpvar_68)) {
-    vec4 tmpvar_70;
-    vec4 tmpvar_71;
+    lowp vec4 tmpvar_70;
+    lowp vec4 tmpvar_71;
     float tmpvar_72;
     tmpvar_72 = (u_scale / 6.0);
     tmpvar_71 = ((tmpvar_4 * (1.0 - 
@@ -439,13 +440,13 @@ void main ()
     };
     lightestColor_1 = tmpvar_70;
   } else {
-    float tmpvar_73;
+    lowp float tmpvar_73;
     tmpvar_73 = max (max (tmpvar_3, tmpvar_26.w), tmpvar_30.w);
-    float tmpvar_74;
+    lowp float tmpvar_74;
     tmpvar_74 = min (min (tmpvar_9.w, tmpvar_22.w), tmpvar_14.w);
     if ((tmpvar_74 > tmpvar_73)) {
-      vec4 tmpvar_75;
-      vec4 tmpvar_76;
+      lowp vec4 tmpvar_75;
+      lowp vec4 tmpvar_76;
       float tmpvar_77;
       tmpvar_77 = (u_scale / 6.0);
       tmpvar_76 = ((tmpvar_4 * (1.0 - 
@@ -469,18 +470,21 @@ void main ()
 
 const lumaFrag = `
 precision mediump float;
-
 uniform sampler2D scaled_texture;
 varying vec2 v_tex_pos;
 void main ()
 {
-  vec4 tmpvar_1;
+  lowp vec4 tmpvar_1;
   tmpvar_1 = texture2D (scaled_texture, v_tex_pos);
-  gl_FragColor = vec4((((
+  lowp float tmpvar_2;
+  tmpvar_2 = (((
     (tmpvar_1.x + tmpvar_1.x)
    + 
     (tmpvar_1.y + tmpvar_1.y)
-  ) + (tmpvar_1.y + tmpvar_1.z)) / 6.0));
+  ) + (tmpvar_1.y + tmpvar_1.z)) / 6.0);
+  mediump vec4 tmpvar_3;
+  tmpvar_3 = vec4(tmpvar_2);
+  gl_FragColor = tmpvar_3;
 }
 
 
@@ -488,7 +492,6 @@ void main ()
 
 const lumaGausXFrag = `
 precision mediump float;
-
 uniform sampler2D post_kernel_texture;
 uniform vec2 u_pt;
 varying vec2 v_tex_pos;
@@ -497,22 +500,24 @@ void main ()
   vec2 tmpvar_1;
   tmpvar_1.y = 0.0;
   tmpvar_1.x = u_pt.x;
-  float g_2;
+  lowp float g_2;
   g_2 = ((texture2D (post_kernel_texture, (v_tex_pos - 
     (tmpvar_1 * 2.0)
   )).x * 0.187691) + (texture2D (post_kernel_texture, (v_tex_pos - tmpvar_1)).x * 0.206038));
-  vec4 tmpvar_3;
+  lowp vec4 tmpvar_3;
   tmpvar_3 = texture2D (post_kernel_texture, v_tex_pos);
   g_2 = (g_2 + (tmpvar_3.x * 0.212543));
   g_2 = (g_2 + (texture2D (post_kernel_texture, (v_tex_pos + tmpvar_1)).x * 0.206038));
   g_2 = (g_2 + (texture2D (post_kernel_texture, (v_tex_pos + 
     (tmpvar_1 * 2.0)
   )).x * 0.187691));
-  vec4 tmpvar_4;
-  tmpvar_4.x = tmpvar_3.x;
-  tmpvar_4.y = clamp (g_2, 0.0, 1.0);
-  tmpvar_4.zw = tmpvar_3.zw;
-  gl_FragColor = tmpvar_4;
+  lowp float tmpvar_4;
+  tmpvar_4 = clamp (g_2, 0.0, 1.0);
+  mediump vec4 tmpvar_5;
+  tmpvar_5.x = tmpvar_3.x;
+  tmpvar_5.y = tmpvar_4;
+  tmpvar_5.zw = tmpvar_3.zw;
+  gl_FragColor = tmpvar_5;
 }
 
 
@@ -520,7 +525,6 @@ void main ()
 
 const lumaGausYFrag = `
 precision mediump float;
-
 uniform sampler2D post_kernel_texture;
 uniform vec2 u_pt;
 varying vec2 v_tex_pos;
@@ -529,22 +533,24 @@ void main ()
   vec2 tmpvar_1;
   tmpvar_1.x = 0.0;
   tmpvar_1.y = u_pt.y;
-  float g_2;
+  lowp float g_2;
   g_2 = ((texture2D (post_kernel_texture, (v_tex_pos - 
     (tmpvar_1 * 2.0)
   )).x * 0.187691) + (texture2D (post_kernel_texture, (v_tex_pos - tmpvar_1)).x * 0.206038));
-  vec4 tmpvar_3;
+  lowp vec4 tmpvar_3;
   tmpvar_3 = texture2D (post_kernel_texture, v_tex_pos);
   g_2 = (g_2 + (tmpvar_3.x * 0.212543));
   g_2 = (g_2 + (texture2D (post_kernel_texture, (v_tex_pos + tmpvar_1)).x * 0.206038));
   g_2 = (g_2 + (texture2D (post_kernel_texture, (v_tex_pos + 
     (tmpvar_1 * 2.0)
   )).x * 0.187691));
-  vec4 tmpvar_4;
-  tmpvar_4.x = tmpvar_3.x;
-  tmpvar_4.y = clamp (g_2, 0.0, 1.0);
-  tmpvar_4.zw = tmpvar_3.zw;
-  gl_FragColor = tmpvar_4;
+  lowp float tmpvar_4;
+  tmpvar_4 = clamp (g_2, 0.0, 1.0);
+  mediump vec4 tmpvar_5;
+  tmpvar_5.x = tmpvar_3.x;
+  tmpvar_5.y = tmpvar_4;
+  tmpvar_5.zw = tmpvar_3.zw;
+  gl_FragColor = tmpvar_5;
 }
 
 
@@ -552,29 +558,29 @@ void main ()
 
 const lineDetectFrag = `
 precision mediump float;
-
 uniform sampler2D post_kernel_texture;
 varying vec2 v_tex_pos;
 void main ()
 {
-  float tmpvar_1;
-  vec4 tmpvar_2;
-  tmpvar_2 = texture2D (post_kernel_texture, v_tex_pos);
-  tmpvar_1 = clamp (tmpvar_2.x, 0.001, 0.999);
-  float tmpvar_3;
-  tmpvar_3 = clamp (tmpvar_2.y, 0.001, 0.999);
-  float tmpvar_4;
-  if ((tmpvar_3 == 1.0)) {
-    tmpvar_4 = tmpvar_3;
+  lowp float pseudolines_1;
+  lowp float tmpvar_2;
+  lowp vec4 tmpvar_3;
+  tmpvar_3 = texture2D (post_kernel_texture, v_tex_pos);
+  tmpvar_2 = clamp (tmpvar_3.x, 0.001, 0.999);
+  lowp float tmpvar_4;
+  tmpvar_4 = clamp (tmpvar_3.y, 0.001, 0.999);
+  lowp float tmpvar_5;
+  if ((tmpvar_4 == 1.0)) {
+    tmpvar_5 = tmpvar_4;
   } else {
-    tmpvar_4 = min ((tmpvar_1 / tmpvar_3), 1.0);
+    tmpvar_5 = min ((tmpvar_2 / tmpvar_4), 1.0);
   };
-  vec4 tmpvar_5;
-  tmpvar_5.yzw = vec3(0.0, 0.0, 0.0);
-  tmpvar_5.x = (1.0 - clamp ((tmpvar_4 - 0.05), 0.0, 1.0));
-  gl_FragColor = tmpvar_5;
+  pseudolines_1 = (1.0 - clamp ((tmpvar_5 - 0.05), 0.0, 1.0));
+  mediump vec4 tmpvar_6;
+  tmpvar_6.yzw = vec3(0.0, 0.0, 0.0);
+  tmpvar_6.x = pseudolines_1;
+  gl_FragColor = tmpvar_6;
 }
-
 
 `;
 
@@ -588,7 +594,7 @@ void main ()
   vec2 tmpvar_1;
   tmpvar_1.y = 0.0;
   tmpvar_1.x = u_pt.x;
-  float g_2;
+  lowp float g_2;
   g_2 = ((texture2D (post_kernel_texture, (v_tex_pos - 
     (tmpvar_1 * 2.0)
   )).x * 0.187691) + (texture2D (post_kernel_texture, (v_tex_pos - tmpvar_1)).x * 0.206038));
@@ -597,10 +603,12 @@ void main ()
   g_2 = (g_2 + (texture2D (post_kernel_texture, (v_tex_pos + 
     (tmpvar_1 * 2.0)
   )).x * 0.187691));
-  vec4 tmpvar_3;
-  tmpvar_3.yzw = vec3(0.0, 0.0, 0.0);
-  tmpvar_3.x = clamp (g_2, 0.0, 1.0);
-  gl_FragColor = tmpvar_3;
+  lowp float tmpvar_3;
+  tmpvar_3 = clamp (g_2, 0.0, 1.0);
+  mediump vec4 tmpvar_4;
+  tmpvar_4.yzw = vec3(0.0, 0.0, 0.0);
+  tmpvar_4.x = tmpvar_3;
+  gl_FragColor = tmpvar_4;
 }
 
 
@@ -616,7 +624,7 @@ void main ()
   vec2 tmpvar_1;
   tmpvar_1.x = 0.0;
   tmpvar_1.y = u_pt.y;
-  float g_2;
+  lowp float g_2;
   g_2 = ((texture2D (post_kernel_texture, (v_tex_pos - 
     (tmpvar_1 * 2.0)
   )).x * 0.187691) + (texture2D (post_kernel_texture, (v_tex_pos - tmpvar_1)).x * 0.206038));
@@ -625,10 +633,12 @@ void main ()
   g_2 = (g_2 + (texture2D (post_kernel_texture, (v_tex_pos + 
     (tmpvar_1 * 2.0)
   )).x * 0.187691));
-  vec4 tmpvar_3;
-  tmpvar_3.yzw = vec3(0.0, 0.0, 0.0);
-  tmpvar_3.x = clamp (g_2, 0.0, 1.0);
-  gl_FragColor = tmpvar_3;
+  lowp float tmpvar_3;
+  tmpvar_3 = clamp (g_2, 0.0, 1.0);
+  mediump vec4 tmpvar_4;
+  tmpvar_4.yzw = vec3(0.0, 0.0, 0.0);
+  tmpvar_4.x = tmpvar_3;
+  gl_FragColor = tmpvar_4;
 }
 
 
@@ -636,7 +646,6 @@ void main ()
 
 const gradFrag = `
 precision mediump float;
-
 uniform sampler2D u_texture;
 uniform sampler2D u_textureTemp;
 uniform vec2 u_pt;
@@ -650,7 +659,7 @@ void main ()
   tmpvar_1.y = tmpvar_2;
   vec2 pos_3;
   pos_3 = (v_tex_pos + tmpvar_1);
-  vec4 tmpvar_4;
+  lowp vec4 tmpvar_4;
   tmpvar_4.xyz = texture2D (u_texture, (1.0 - pos_3)).xyz;
   tmpvar_4.w = texture2D (u_textureTemp, (1.0 - pos_3)).x;
   vec2 tmpvar_5;
@@ -660,7 +669,7 @@ void main ()
   tmpvar_5.y = tmpvar_2;
   vec2 pos_7;
   pos_7 = (v_tex_pos + tmpvar_5);
-  vec4 tmpvar_8;
+  lowp vec4 tmpvar_8;
   tmpvar_8.xyz = texture2D (u_texture, (1.0 - pos_7)).xyz;
   tmpvar_8.w = texture2D (u_textureTemp, (1.0 - pos_7)).x;
   vec2 tmpvar_9;
@@ -668,7 +677,7 @@ void main ()
   tmpvar_9.y = tmpvar_2;
   vec2 pos_10;
   pos_10 = (v_tex_pos + tmpvar_9);
-  vec4 tmpvar_11;
+  lowp vec4 tmpvar_11;
   tmpvar_11.xyz = texture2D (u_texture, (1.0 - pos_10)).xyz;
   tmpvar_11.w = texture2D (u_textureTemp, (1.0 - pos_10)).x;
   vec2 tmpvar_12;
@@ -676,7 +685,7 @@ void main ()
   tmpvar_12.x = tmpvar_6;
   vec2 pos_13;
   pos_13 = (v_tex_pos + tmpvar_12);
-  vec4 tmpvar_14;
+  lowp vec4 tmpvar_14;
   tmpvar_14.xyz = texture2D (u_texture, (1.0 - pos_13)).xyz;
   tmpvar_14.w = texture2D (u_textureTemp, (1.0 - pos_13)).x;
   vec2 tmpvar_15;
@@ -684,7 +693,7 @@ void main ()
   tmpvar_15.x = u_pt.x;
   vec2 pos_16;
   pos_16 = (v_tex_pos + tmpvar_15);
-  vec4 tmpvar_17;
+  lowp vec4 tmpvar_17;
   tmpvar_17.xyz = texture2D (u_texture, (1.0 - pos_16)).xyz;
   tmpvar_17.w = texture2D (u_textureTemp, (1.0 - pos_16)).x;
   vec2 tmpvar_18;
@@ -692,7 +701,7 @@ void main ()
   tmpvar_18.y = u_pt.y;
   vec2 pos_19;
   pos_19 = (v_tex_pos + tmpvar_18);
-  vec4 tmpvar_20;
+  lowp vec4 tmpvar_20;
   tmpvar_20.xyz = texture2D (u_texture, (1.0 - pos_19)).xyz;
   tmpvar_20.w = texture2D (u_textureTemp, (1.0 - pos_19)).x;
   vec2 tmpvar_21;
@@ -700,29 +709,35 @@ void main ()
   tmpvar_21.y = u_pt.y;
   vec2 pos_22;
   pos_22 = (v_tex_pos + tmpvar_21);
-  vec4 tmpvar_23;
+  lowp vec4 tmpvar_23;
   tmpvar_23.xyz = texture2D (u_texture, (1.0 - pos_22)).xyz;
   tmpvar_23.w = texture2D (u_textureTemp, (1.0 - pos_22)).x;
   vec2 pos_24;
   pos_24 = (v_tex_pos + u_pt);
-  vec4 tmpvar_25;
+  lowp vec4 tmpvar_25;
   tmpvar_25.xyz = texture2D (u_texture, (1.0 - pos_24)).xyz;
   tmpvar_25.w = texture2D (u_textureTemp, (1.0 - pos_24)).x;
-  float tmpvar_26;
+  lowp float tmpvar_26;
   tmpvar_26 = (((
     ((((
       -(tmpvar_8.w)
      + tmpvar_11.w) - tmpvar_14.w) - tmpvar_14.w) + tmpvar_17.w)
    + tmpvar_17.w) - tmpvar_23.w) + tmpvar_25.w);
-  float tmpvar_27;
+  lowp float tmpvar_27;
   tmpvar_27 = (((
     ((((
       -(tmpvar_8.w)
      - tmpvar_4.w) - tmpvar_4.w) - tmpvar_11.w) + tmpvar_23.w)
    + tmpvar_20.w) + tmpvar_20.w) + tmpvar_25.w);
-  gl_FragColor = vec4((1.0 - clamp (sqrt(
-    ((tmpvar_26 * tmpvar_26) + (tmpvar_27 * tmpvar_27))
-  ), 0.0, 1.0)));
+  lowp float tmpvar_28;
+  tmpvar_28 = clamp (sqrt((
+    (tmpvar_26 * tmpvar_26)
+   + 
+    (tmpvar_27 * tmpvar_27)
+  )), 0.0, 1.0);
+  mediump vec4 tmpvar_29;
+  tmpvar_29 = vec4((1.0 - tmpvar_28));
+  gl_FragColor = tmpvar_29;
 }
 
 
@@ -745,7 +760,7 @@ void main ()
   vec2 tmpvar_3;
   tmpvar_3.x = v_tex_pos.x;
   tmpvar_3.y = tmpvar_2;
-  vec4 tmpvar_4;
+  lowp vec4 tmpvar_4;
   tmpvar_4.xyz = texture2D (u_texture, tmpvar_1).xyz;
   tmpvar_4.w = texture2D (u_textureTemp, tmpvar_3).z;
   vec2 tmpvar_5;
@@ -761,7 +776,7 @@ void main ()
   vec2 tmpvar_9;
   tmpvar_9.x = pos_7.x;
   tmpvar_9.y = (1.0 - pos_7.y);
-  vec4 tmpvar_10;
+  lowp vec4 tmpvar_10;
   tmpvar_10.xyz = texture2D (u_texture, tmpvar_8).xyz;
   tmpvar_10.w = texture2D (u_textureTemp, tmpvar_9).z;
   vec2 tmpvar_11;
@@ -777,7 +792,7 @@ void main ()
   vec2 tmpvar_15;
   tmpvar_15.x = pos_13.x;
   tmpvar_15.y = (1.0 - pos_13.y);
-  vec4 tmpvar_16;
+  lowp vec4 tmpvar_16;
   tmpvar_16.xyz = texture2D (u_texture, tmpvar_14).xyz;
   tmpvar_16.w = texture2D (u_textureTemp, tmpvar_15).z;
   vec2 tmpvar_17;
@@ -791,7 +806,7 @@ void main ()
   vec2 tmpvar_20;
   tmpvar_20.x = pos_18.x;
   tmpvar_20.y = (1.0 - pos_18.y);
-  vec4 tmpvar_21;
+  lowp vec4 tmpvar_21;
   tmpvar_21.xyz = texture2D (u_texture, tmpvar_19).xyz;
   tmpvar_21.w = texture2D (u_textureTemp, tmpvar_20).z;
   vec2 tmpvar_22;
@@ -805,7 +820,7 @@ void main ()
   vec2 tmpvar_25;
   tmpvar_25.x = pos_23.x;
   tmpvar_25.y = (1.0 - pos_23.y);
-  vec4 tmpvar_26;
+  lowp vec4 tmpvar_26;
   tmpvar_26.xyz = texture2D (u_texture, tmpvar_24).xyz;
   tmpvar_26.w = texture2D (u_textureTemp, tmpvar_25).z;
   vec2 tmpvar_27;
@@ -819,7 +834,7 @@ void main ()
   vec2 tmpvar_30;
   tmpvar_30.x = pos_28.x;
   tmpvar_30.y = (1.0 - pos_28.y);
-  vec4 tmpvar_31;
+  lowp vec4 tmpvar_31;
   tmpvar_31.xyz = texture2D (u_texture, tmpvar_29).xyz;
   tmpvar_31.w = texture2D (u_textureTemp, tmpvar_30).z;
   vec2 tmpvar_32;
@@ -833,7 +848,7 @@ void main ()
   vec2 tmpvar_35;
   tmpvar_35.x = pos_33.x;
   tmpvar_35.y = (1.0 - pos_33.y);
-  vec4 tmpvar_36;
+  lowp vec4 tmpvar_36;
   tmpvar_36.xyz = texture2D (u_texture, tmpvar_34).xyz;
   tmpvar_36.w = texture2D (u_textureTemp, tmpvar_35).z;
   vec2 tmpvar_37;
@@ -847,7 +862,7 @@ void main ()
   vec2 tmpvar_40;
   tmpvar_40.x = pos_38.x;
   tmpvar_40.y = (1.0 - pos_38.y);
-  vec4 tmpvar_41;
+  lowp vec4 tmpvar_41;
   tmpvar_41.xyz = texture2D (u_texture, tmpvar_39).xyz;
   tmpvar_41.w = texture2D (u_textureTemp, tmpvar_40).z;
   vec2 pos_42;
@@ -858,186 +873,202 @@ void main ()
   vec2 tmpvar_44;
   tmpvar_44.x = pos_42.x;
   tmpvar_44.y = (1.0 - pos_42.y);
-  vec4 tmpvar_45;
+  lowp vec4 tmpvar_45;
   tmpvar_45.xyz = texture2D (u_texture, tmpvar_43).xyz;
   tmpvar_45.w = texture2D (u_textureTemp, tmpvar_44).z;
-  float tmpvar_46;
+  lowp float tmpvar_46;
   tmpvar_46 = max (max (tmpvar_45.w, tmpvar_36.w), tmpvar_41.w);
-  float tmpvar_47;
+  lowp float tmpvar_47;
   tmpvar_47 = min (min (tmpvar_16.w, tmpvar_10.w), tmpvar_21.w);
   if (((tmpvar_47 > tmpvar_4.w) && (tmpvar_47 > tmpvar_46))) {
-    float prob_48;
-    vec2 tmpvar_49;
-    tmpvar_49.x = v_tex_pos.x;
-    tmpvar_49.y = (1.0 - v_tex_pos.y);
-    float tmpvar_50;
-    tmpvar_50 = clamp ((texture2D (u_textureTemp, tmpvar_49).y * 8.0), 0.0, 1.0);
-    prob_48 = tmpvar_50;
-    if ((tmpvar_50 < 0.2)) {
-      prob_48 = 0.0;
+    mediump vec4 tmpvar_48;
+    lowp float prob_49;
+    vec2 tmpvar_50;
+    tmpvar_50.x = v_tex_pos.x;
+    tmpvar_50.y = (1.0 - v_tex_pos.y);
+    lowp float tmpvar_51;
+    tmpvar_51 = clamp ((texture2D (u_textureTemp, tmpvar_50).y * 8.0), 0.0, 1.0);
+    prob_49 = tmpvar_51;
+    if ((tmpvar_51 < 0.2)) {
+      prob_49 = 0.0;
     };
-    float tmpvar_51;
-    tmpvar_51 = clamp ((min (u_scale, 1.0) * prob_48), 0.0, 1.0);
-    gl_FragColor = ((tmpvar_4 * (1.0 - tmpvar_51)) + ((
+    lowp float tmpvar_52;
+    tmpvar_52 = clamp ((min (u_scale, 1.0) * prob_49), 0.0, 1.0);
+    tmpvar_48 = ((tmpvar_4 * (1.0 - tmpvar_52)) + ((
       ((tmpvar_16 + tmpvar_10) + tmpvar_21)
-     / 3.0) * tmpvar_51));
+     / 3.0) * tmpvar_52));
+    gl_FragColor = tmpvar_48;
     return;
   } else {
-    float tmpvar_52;
-    tmpvar_52 = max (max (tmpvar_16.w, tmpvar_10.w), tmpvar_21.w);
-    float tmpvar_53;
-    tmpvar_53 = min (min (tmpvar_45.w, tmpvar_36.w), tmpvar_41.w);
-    if (((tmpvar_53 > tmpvar_4.w) && (tmpvar_53 > tmpvar_52))) {
-      float prob_54;
-      vec2 tmpvar_55;
-      tmpvar_55.x = v_tex_pos.x;
-      tmpvar_55.y = (1.0 - v_tex_pos.y);
-      float tmpvar_56;
-      tmpvar_56 = clamp ((texture2D (u_textureTemp, tmpvar_55).y * 8.0), 0.0, 1.0);
-      prob_54 = tmpvar_56;
-      if ((tmpvar_56 < 0.2)) {
-        prob_54 = 0.0;
+    lowp float tmpvar_53;
+    tmpvar_53 = max (max (tmpvar_16.w, tmpvar_10.w), tmpvar_21.w);
+    lowp float tmpvar_54;
+    tmpvar_54 = min (min (tmpvar_45.w, tmpvar_36.w), tmpvar_41.w);
+    if (((tmpvar_54 > tmpvar_4.w) && (tmpvar_54 > tmpvar_53))) {
+      mediump vec4 tmpvar_55;
+      lowp float prob_56;
+      vec2 tmpvar_57;
+      tmpvar_57.x = v_tex_pos.x;
+      tmpvar_57.y = (1.0 - v_tex_pos.y);
+      lowp float tmpvar_58;
+      tmpvar_58 = clamp ((texture2D (u_textureTemp, tmpvar_57).y * 8.0), 0.0, 1.0);
+      prob_56 = tmpvar_58;
+      if ((tmpvar_58 < 0.2)) {
+        prob_56 = 0.0;
       };
-      float tmpvar_57;
-      tmpvar_57 = clamp ((min (u_scale, 1.0) * prob_54), 0.0, 1.0);
-      gl_FragColor = ((tmpvar_4 * (1.0 - tmpvar_57)) + ((
+      lowp float tmpvar_59;
+      tmpvar_59 = clamp ((min (u_scale, 1.0) * prob_56), 0.0, 1.0);
+      tmpvar_55 = ((tmpvar_4 * (1.0 - tmpvar_59)) + ((
         ((tmpvar_45 + tmpvar_36) + tmpvar_41)
-       / 3.0) * tmpvar_57));
+       / 3.0) * tmpvar_59));
+      gl_FragColor = tmpvar_55;
       return;
     };
   };
-  float tmpvar_58;
-  tmpvar_58 = max (max (tmpvar_4.w, tmpvar_26.w), tmpvar_36.w);
-  float tmpvar_59;
-  tmpvar_59 = min (min (tmpvar_31.w, tmpvar_10.w), tmpvar_21.w);
-  if ((tmpvar_59 > tmpvar_58)) {
-    float prob_60;
-    vec2 tmpvar_61;
-    tmpvar_61.x = v_tex_pos.x;
-    tmpvar_61.y = (1.0 - v_tex_pos.y);
-    float tmpvar_62;
-    tmpvar_62 = clamp ((texture2D (u_textureTemp, tmpvar_61).y * 8.0), 0.0, 1.0);
-    prob_60 = tmpvar_62;
-    if ((tmpvar_62 < 0.2)) {
-      prob_60 = 0.0;
+  lowp float tmpvar_60;
+  tmpvar_60 = max (max (tmpvar_4.w, tmpvar_26.w), tmpvar_36.w);
+  lowp float tmpvar_61;
+  tmpvar_61 = min (min (tmpvar_31.w, tmpvar_10.w), tmpvar_21.w);
+  if ((tmpvar_61 > tmpvar_60)) {
+    mediump vec4 tmpvar_62;
+    lowp float prob_63;
+    vec2 tmpvar_64;
+    tmpvar_64.x = v_tex_pos.x;
+    tmpvar_64.y = (1.0 - v_tex_pos.y);
+    lowp float tmpvar_65;
+    tmpvar_65 = clamp ((texture2D (u_textureTemp, tmpvar_64).y * 8.0), 0.0, 1.0);
+    prob_63 = tmpvar_65;
+    if ((tmpvar_65 < 0.2)) {
+      prob_63 = 0.0;
     };
-    float tmpvar_63;
-    tmpvar_63 = clamp ((min (u_scale, 1.0) * prob_60), 0.0, 1.0);
-    gl_FragColor = ((tmpvar_4 * (1.0 - tmpvar_63)) + ((
+    lowp float tmpvar_66;
+    tmpvar_66 = clamp ((min (u_scale, 1.0) * prob_63), 0.0, 1.0);
+    tmpvar_62 = ((tmpvar_4 * (1.0 - tmpvar_66)) + ((
       ((tmpvar_31 + tmpvar_10) + tmpvar_21)
-     / 3.0) * tmpvar_63));
+     / 3.0) * tmpvar_66));
+    gl_FragColor = tmpvar_62;
     return;
   } else {
-    float tmpvar_64;
-    tmpvar_64 = max (max (tmpvar_4.w, tmpvar_31.w), tmpvar_10.w);
-    float tmpvar_65;
-    tmpvar_65 = min (min (tmpvar_41.w, tmpvar_26.w), tmpvar_36.w);
-    if ((tmpvar_65 > tmpvar_64)) {
-      float prob_66;
-      vec2 tmpvar_67;
-      tmpvar_67.x = v_tex_pos.x;
-      tmpvar_67.y = (1.0 - v_tex_pos.y);
-      float tmpvar_68;
-      tmpvar_68 = clamp ((texture2D (u_textureTemp, tmpvar_67).y * 8.0), 0.0, 1.0);
-      prob_66 = tmpvar_68;
-      if ((tmpvar_68 < 0.2)) {
-        prob_66 = 0.0;
+    lowp float tmpvar_67;
+    tmpvar_67 = max (max (tmpvar_4.w, tmpvar_31.w), tmpvar_10.w);
+    lowp float tmpvar_68;
+    tmpvar_68 = min (min (tmpvar_41.w, tmpvar_26.w), tmpvar_36.w);
+    if ((tmpvar_68 > tmpvar_67)) {
+      mediump vec4 tmpvar_69;
+      lowp float prob_70;
+      vec2 tmpvar_71;
+      tmpvar_71.x = v_tex_pos.x;
+      tmpvar_71.y = (1.0 - v_tex_pos.y);
+      lowp float tmpvar_72;
+      tmpvar_72 = clamp ((texture2D (u_textureTemp, tmpvar_71).y * 8.0), 0.0, 1.0);
+      prob_70 = tmpvar_72;
+      if ((tmpvar_72 < 0.2)) {
+        prob_70 = 0.0;
       };
-      float tmpvar_69;
-      tmpvar_69 = clamp ((min (u_scale, 1.0) * prob_66), 0.0, 1.0);
-      gl_FragColor = ((tmpvar_4 * (1.0 - tmpvar_69)) + ((
+      lowp float tmpvar_73;
+      tmpvar_73 = clamp ((min (u_scale, 1.0) * prob_70), 0.0, 1.0);
+      tmpvar_69 = ((tmpvar_4 * (1.0 - tmpvar_73)) + ((
         ((tmpvar_41 + tmpvar_26) + tmpvar_36)
-       / 3.0) * tmpvar_69));
+       / 3.0) * tmpvar_73));
+      gl_FragColor = tmpvar_69;
       return;
     };
   };
-  float tmpvar_70;
-  tmpvar_70 = max (max (tmpvar_26.w, tmpvar_16.w), tmpvar_41.w);
-  float tmpvar_71;
-  tmpvar_71 = min (min (tmpvar_31.w, tmpvar_45.w), tmpvar_21.w);
-  if (((tmpvar_71 > tmpvar_4.w) && (tmpvar_71 > tmpvar_70))) {
-    float prob_72;
-    vec2 tmpvar_73;
-    tmpvar_73.x = v_tex_pos.x;
-    tmpvar_73.y = (1.0 - v_tex_pos.y);
-    float tmpvar_74;
-    tmpvar_74 = clamp ((texture2D (u_textureTemp, tmpvar_73).y * 8.0), 0.0, 1.0);
-    prob_72 = tmpvar_74;
-    if ((tmpvar_74 < 0.2)) {
-      prob_72 = 0.0;
+  lowp float tmpvar_74;
+  tmpvar_74 = max (max (tmpvar_26.w, tmpvar_16.w), tmpvar_41.w);
+  lowp float tmpvar_75;
+  tmpvar_75 = min (min (tmpvar_31.w, tmpvar_45.w), tmpvar_21.w);
+  if (((tmpvar_75 > tmpvar_4.w) && (tmpvar_75 > tmpvar_74))) {
+    mediump vec4 tmpvar_76;
+    lowp float prob_77;
+    vec2 tmpvar_78;
+    tmpvar_78.x = v_tex_pos.x;
+    tmpvar_78.y = (1.0 - v_tex_pos.y);
+    lowp float tmpvar_79;
+    tmpvar_79 = clamp ((texture2D (u_textureTemp, tmpvar_78).y * 8.0), 0.0, 1.0);
+    prob_77 = tmpvar_79;
+    if ((tmpvar_79 < 0.2)) {
+      prob_77 = 0.0;
     };
-    float tmpvar_75;
-    tmpvar_75 = clamp ((min (u_scale, 1.0) * prob_72), 0.0, 1.0);
-    gl_FragColor = ((tmpvar_4 * (1.0 - tmpvar_75)) + ((
+    lowp float tmpvar_80;
+    tmpvar_80 = clamp ((min (u_scale, 1.0) * prob_77), 0.0, 1.0);
+    tmpvar_76 = ((tmpvar_4 * (1.0 - tmpvar_80)) + ((
       ((tmpvar_31 + tmpvar_45) + tmpvar_21)
-     / 3.0) * tmpvar_75));
+     / 3.0) * tmpvar_80));
+    gl_FragColor = tmpvar_76;
     return;
   } else {
-    float tmpvar_76;
-    tmpvar_76 = max (max (tmpvar_31.w, tmpvar_45.w), tmpvar_21.w);
-    float tmpvar_77;
-    tmpvar_77 = min (min (tmpvar_26.w, tmpvar_16.w), tmpvar_41.w);
-    if (((tmpvar_77 > tmpvar_4.w) && (tmpvar_77 > tmpvar_76))) {
-      float prob_78;
-      vec2 tmpvar_79;
-      tmpvar_79.x = v_tex_pos.x;
-      tmpvar_79.y = (1.0 - v_tex_pos.y);
-      float tmpvar_80;
-      tmpvar_80 = clamp ((texture2D (u_textureTemp, tmpvar_79).y * 8.0), 0.0, 1.0);
-      prob_78 = tmpvar_80;
-      if ((tmpvar_80 < 0.2)) {
-        prob_78 = 0.0;
+    lowp float tmpvar_81;
+    tmpvar_81 = max (max (tmpvar_31.w, tmpvar_45.w), tmpvar_21.w);
+    lowp float tmpvar_82;
+    tmpvar_82 = min (min (tmpvar_26.w, tmpvar_16.w), tmpvar_41.w);
+    if (((tmpvar_82 > tmpvar_4.w) && (tmpvar_82 > tmpvar_81))) {
+      mediump vec4 tmpvar_83;
+      lowp float prob_84;
+      vec2 tmpvar_85;
+      tmpvar_85.x = v_tex_pos.x;
+      tmpvar_85.y = (1.0 - v_tex_pos.y);
+      lowp float tmpvar_86;
+      tmpvar_86 = clamp ((texture2D (u_textureTemp, tmpvar_85).y * 8.0), 0.0, 1.0);
+      prob_84 = tmpvar_86;
+      if ((tmpvar_86 < 0.2)) {
+        prob_84 = 0.0;
       };
-      float tmpvar_81;
-      tmpvar_81 = clamp ((min (u_scale, 1.0) * prob_78), 0.0, 1.0);
-      gl_FragColor = ((tmpvar_4 * (1.0 - tmpvar_81)) + ((
+      lowp float tmpvar_87;
+      tmpvar_87 = clamp ((min (u_scale, 1.0) * prob_84), 0.0, 1.0);
+      tmpvar_83 = ((tmpvar_4 * (1.0 - tmpvar_87)) + ((
         ((tmpvar_26 + tmpvar_16) + tmpvar_41)
-       / 3.0) * tmpvar_81));
+       / 3.0) * tmpvar_87));
+      gl_FragColor = tmpvar_83;
       return;
     };
   };
-  float tmpvar_82;
-  tmpvar_82 = max (max (tmpvar_4.w, tmpvar_26.w), tmpvar_10.w);
-  float tmpvar_83;
-  tmpvar_83 = min (min (tmpvar_31.w, tmpvar_45.w), tmpvar_36.w);
-  if ((tmpvar_83 > tmpvar_82)) {
-    float prob_84;
-    vec2 tmpvar_85;
-    tmpvar_85.x = v_tex_pos.x;
-    tmpvar_85.y = (1.0 - v_tex_pos.y);
-    float tmpvar_86;
-    tmpvar_86 = clamp ((texture2D (u_textureTemp, tmpvar_85).y * 8.0), 0.0, 1.0);
-    prob_84 = tmpvar_86;
-    if ((tmpvar_86 < 0.2)) {
-      prob_84 = 0.0;
+  lowp float tmpvar_88;
+  tmpvar_88 = max (max (tmpvar_4.w, tmpvar_26.w), tmpvar_10.w);
+  lowp float tmpvar_89;
+  tmpvar_89 = min (min (tmpvar_31.w, tmpvar_45.w), tmpvar_36.w);
+  if ((tmpvar_89 > tmpvar_88)) {
+    mediump vec4 tmpvar_90;
+    lowp float prob_91;
+    vec2 tmpvar_92;
+    tmpvar_92.x = v_tex_pos.x;
+    tmpvar_92.y = (1.0 - v_tex_pos.y);
+    lowp float tmpvar_93;
+    tmpvar_93 = clamp ((texture2D (u_textureTemp, tmpvar_92).y * 8.0), 0.0, 1.0);
+    prob_91 = tmpvar_93;
+    if ((tmpvar_93 < 0.2)) {
+      prob_91 = 0.0;
     };
-    float tmpvar_87;
-    tmpvar_87 = clamp ((min (u_scale, 1.0) * prob_84), 0.0, 1.0);
-    gl_FragColor = ((tmpvar_4 * (1.0 - tmpvar_87)) + ((
+    lowp float tmpvar_94;
+    tmpvar_94 = clamp ((min (u_scale, 1.0) * prob_91), 0.0, 1.0);
+    tmpvar_90 = ((tmpvar_4 * (1.0 - tmpvar_94)) + ((
       ((tmpvar_31 + tmpvar_45) + tmpvar_36)
-     / 3.0) * tmpvar_87));
+     / 3.0) * tmpvar_94));
+    gl_FragColor = tmpvar_90;
     return;
   } else {
-    float tmpvar_88;
-    tmpvar_88 = max (max (tmpvar_4.w, tmpvar_31.w), tmpvar_36.w);
-    float tmpvar_89;
-    tmpvar_89 = min (min (tmpvar_10.w, tmpvar_26.w), tmpvar_16.w);
-    if ((tmpvar_89 > tmpvar_88)) {
-      float prob_90;
-      vec2 tmpvar_91;
-      tmpvar_91.x = v_tex_pos.x;
-      tmpvar_91.y = (1.0 - v_tex_pos.y);
-      float tmpvar_92;
-      tmpvar_92 = clamp ((texture2D (u_textureTemp, tmpvar_91).y * 8.0), 0.0, 1.0);
-      prob_90 = tmpvar_92;
-      if ((tmpvar_92 < 0.2)) {
-        prob_90 = 0.0;
+    lowp float tmpvar_95;
+    tmpvar_95 = max (max (tmpvar_4.w, tmpvar_31.w), tmpvar_36.w);
+    lowp float tmpvar_96;
+    tmpvar_96 = min (min (tmpvar_10.w, tmpvar_26.w), tmpvar_16.w);
+    if ((tmpvar_96 > tmpvar_95)) {
+      mediump vec4 tmpvar_97;
+      lowp float prob_98;
+      vec2 tmpvar_99;
+      tmpvar_99.x = v_tex_pos.x;
+      tmpvar_99.y = (1.0 - v_tex_pos.y);
+      lowp float tmpvar_100;
+      tmpvar_100 = clamp ((texture2D (u_textureTemp, tmpvar_99).y * 8.0), 0.0, 1.0);
+      prob_98 = tmpvar_100;
+      if ((tmpvar_100 < 0.2)) {
+        prob_98 = 0.0;
       };
-      float tmpvar_93;
-      tmpvar_93 = clamp ((min (u_scale, 1.0) * prob_90), 0.0, 1.0);
-      gl_FragColor = ((tmpvar_4 * (1.0 - tmpvar_93)) + ((
+      lowp float tmpvar_101;
+      tmpvar_101 = clamp ((min (u_scale, 1.0) * prob_98), 0.0, 1.0);
+      tmpvar_97 = ((tmpvar_4 * (1.0 - tmpvar_101)) + ((
         ((tmpvar_10 + tmpvar_26) + tmpvar_16)
-       / 3.0) * tmpvar_93));
+       / 3.0) * tmpvar_101));
+      gl_FragColor = tmpvar_97;
       return;
     };
   };
@@ -1049,140 +1080,94 @@ void main ()
 
 const fxaaFrag = `
 precision mediump float;
+
 uniform sampler2D u_texture;
 uniform sampler2D u_textureTemp;
-uniform highp vec2 u_pt;
-uniform highp float u_scale;
-varying highp vec2 v_tex_pos;
-void main ()
-{
-  lowp vec2 dir_1;
-  lowp vec4 xc_2;
-  highp vec2 tmpvar_3;
-  tmpvar_3.x = v_tex_pos.x;
-  highp float tmpvar_4;
-  tmpvar_4 = (1.0 - v_tex_pos.y);
-  tmpvar_3.y = tmpvar_4;
-  lowp vec4 tmpvar_5;
-  tmpvar_5 = texture2D (u_texture, tmpvar_3);
-  xc_2 = tmpvar_5;
-  highp float tmpvar_6;
-  tmpvar_6 = -(u_pt.y);
-  highp float tmpvar_7;
-  tmpvar_7 = -(u_pt.x);
-  highp vec2 tmpvar_8;
-  tmpvar_8.x = tmpvar_7;
-  tmpvar_8.y = tmpvar_6;
-  highp vec2 pos_9;
-  pos_9 = (v_tex_pos + tmpvar_8);
-  highp vec2 tmpvar_10;
-  tmpvar_10.x = pos_9.x;
-  tmpvar_10.y = (1.0 - pos_9.y);
-  lowp vec4 tmpvar_11;
-  tmpvar_11 = texture2D (u_textureTemp, tmpvar_10);
-  highp vec2 tmpvar_12;
-  tmpvar_12.x = u_pt.x;
-  tmpvar_12.y = tmpvar_6;
-  highp vec2 pos_13;
-  pos_13 = (v_tex_pos + tmpvar_12);
-  highp vec2 tmpvar_14;
-  tmpvar_14.x = pos_13.x;
-  tmpvar_14.y = (1.0 - pos_13.y);
-  lowp vec4 tmpvar_15;
-  tmpvar_15 = texture2D (u_textureTemp, tmpvar_14);
-  highp vec2 tmpvar_16;
-  tmpvar_16.x = tmpvar_7;
-  tmpvar_16.y = u_pt.y;
-  highp vec2 pos_17;
-  pos_17 = (v_tex_pos + tmpvar_16);
-  highp vec2 tmpvar_18;
-  tmpvar_18.x = pos_17.x;
-  tmpvar_18.y = (1.0 - pos_17.y);
-  lowp vec4 tmpvar_19;
-  tmpvar_19 = texture2D (u_textureTemp, tmpvar_18);
-  highp vec2 pos_20;
-  pos_20 = (v_tex_pos + u_pt);
-  highp vec2 tmpvar_21;
-  tmpvar_21.x = pos_20.x;
-  tmpvar_21.y = (1.0 - pos_20.y);
-  lowp vec4 tmpvar_22;
-  tmpvar_22 = texture2D (u_textureTemp, tmpvar_21);
-  highp vec2 tmpvar_23;
-  tmpvar_23.x = v_tex_pos.x;
-  tmpvar_23.y = tmpvar_4;
-  lowp vec4 tmpvar_24;
-  tmpvar_24 = texture2D (u_textureTemp, tmpvar_23);
-  lowp float tmpvar_25;
-  tmpvar_25 = min (min (tmpvar_24.x, tmpvar_11.x), min (min (tmpvar_15.x, tmpvar_19.x), tmpvar_22.x));
-  lowp float tmpvar_26;
-  tmpvar_26 = max (max (tmpvar_24.x, tmpvar_11.x), max (max (tmpvar_15.x, tmpvar_19.x), tmpvar_22.x));
-  lowp vec2 tmpvar_27;
-  tmpvar_27.x = (((
-    -(tmpvar_11.x)
-   - tmpvar_15.x) + tmpvar_19.x) + tmpvar_22.x);
-  tmpvar_27.y = (((tmpvar_11.x - tmpvar_15.x) + tmpvar_19.x) - tmpvar_22.x);
-  dir_1 = (min (vec2(8.0, 8.0), max (vec2(-8.0, -8.0), 
-    (tmpvar_27 * (1.0/((min (
-      abs(tmpvar_27.x)
-    , 
-      abs(tmpvar_27.y)
-    ) + max (
-      (((tmpvar_11.x + tmpvar_15.x) + (tmpvar_19.x + tmpvar_22.x)) * 0.03125)
-    , 0.0078125)))))
-  )) * u_pt);
-  lowp vec2 pos_28;
-  pos_28 = (v_tex_pos + (dir_1 * -0.1666667));
-  lowp vec2 tmpvar_29;
-  tmpvar_29.x = pos_28.x;
-  tmpvar_29.y = (1.0 - pos_28.y);
-  lowp vec2 pos_30;
-  pos_30 = (v_tex_pos + (dir_1 * 0.1666667));
-  lowp vec2 tmpvar_31;
-  tmpvar_31.x = pos_30.x;
-  tmpvar_31.y = (1.0 - pos_30.y);
-  lowp vec4 tmpvar_32;
-  tmpvar_32 = (0.5 * (texture2D (u_texture, tmpvar_29) + texture2D (u_texture, tmpvar_31)));
-  lowp vec2 pos_33;
-  pos_33 = (v_tex_pos + (dir_1 * -0.5));
-  lowp vec2 tmpvar_34;
-  tmpvar_34.x = pos_33.x;
-  tmpvar_34.y = (1.0 - pos_33.y);
-  lowp vec2 pos_35;
-  pos_35 = (v_tex_pos + (dir_1 * 0.5));
-  lowp vec2 tmpvar_36;
-  tmpvar_36.x = pos_35.x;
-  tmpvar_36.y = (1.0 - pos_35.y);
-  lowp vec4 tmpvar_37;
-  tmpvar_37 = ((tmpvar_32 * 0.5) + (0.25 * (texture2D (u_texture, tmpvar_34) + texture2D (u_texture, tmpvar_36))));
-  lowp float tmpvar_38;
-  tmpvar_38 = (((
-    (tmpvar_37.x + tmpvar_37.x)
-   + 
-    (tmpvar_37.y + tmpvar_37.y)
-  ) + (tmpvar_37.y + tmpvar_37.z)) / 6.0);
-  if (((tmpvar_38 < tmpvar_25) || (tmpvar_38 > tmpvar_26))) {
-    xc_2 = tmpvar_32;
-  } else {
-    xc_2 = tmpvar_37;
-  };
-  mediump vec4 tmpvar_39;
-  lowp float prob_40;
-  highp vec2 tmpvar_41;
-  tmpvar_41.x = v_tex_pos.x;
-  tmpvar_41.y = (1.0 - v_tex_pos.y);
-  lowp float tmpvar_42;
-  tmpvar_42 = clamp ((texture2D (u_textureTemp, tmpvar_41).y * 4.0), 0.0, 1.0);
-  prob_40 = tmpvar_42;
-  if ((tmpvar_42 < 0.2)) {
-    prob_40 = 0.0;
-  };
-  lowp float tmpvar_43;
-  tmpvar_43 = clamp ((min (u_scale, 1.0) * prob_40), 0.0, 1.0);
-  tmpvar_39 = ((tmpvar_5 * (1.0 - tmpvar_43)) + (xc_2 * tmpvar_43));
-  gl_FragColor = tmpvar_39;
+uniform vec2 u_pt;
+uniform float u_scale;
+varying vec2 v_tex_pos;
+
+vec4 HOOKED_tex(vec2 pos) {
+    return texture2D(u_texture, vec2(pos.x, 1.0 - pos.y));
 }
 
+vec4 POSTKERNEL_tex(vec2 pos) {
+    return texture2D(u_textureTemp, vec2(pos.x, 1.0 - pos.y));
+}
 
+#define FXAA_MIN (1.0 / 128.0)
+#define FXAA_MUL (1.0 / 8.0)
+#define FXAA_SPAN 8.0
+
+#define LINE_DETECT_MUL 4.0
+#define LINE_DETECT_THRESHOLD 0.2
+
+#define strength (min(u_scale, 1.0))
+#define lineprob (POSTKERNEL_tex(v_tex_pos).y)
+
+vec4 getAverage(vec4 cc, vec4 xc) {
+	float prob = clamp(lineprob * LINE_DETECT_MUL, 0.0, 1.0);
+	if (prob < LINE_DETECT_THRESHOLD) {
+		prob = 0.0;
+	}
+	float realstrength = clamp(strength * prob, 0.0, 1.0);
+	return cc * (1.0 - realstrength) + xc * realstrength;
+}
+
+float getLum(vec4 rgb) {
+	return (rgb.r + rgb.r + rgb.g + rgb.g + rgb.g + rgb.b) / 6.0;
+}
+
+void main()  {
+    vec2 HOOKED_pos = v_tex_pos;
+
+	vec2 d = u_pt;
+
+    vec4 cc = HOOKED_tex(HOOKED_pos);
+    vec4 xc = cc;
+
+	float t = POSTKERNEL_tex(HOOKED_pos + vec2(0, -d.y)).x;
+	float l = POSTKERNEL_tex(HOOKED_pos + vec2(-d.x, 0)).x;
+	float r = POSTKERNEL_tex(HOOKED_pos + vec2(d.x, 0)).x;
+	float b = POSTKERNEL_tex(HOOKED_pos + vec2(0, d.y)).x;
+
+    float tl = POSTKERNEL_tex(HOOKED_pos + vec2(-d.x, -d.y)).x;
+    float tr = POSTKERNEL_tex(HOOKED_pos + vec2(d.x, -d.y)).x;
+    float bl = POSTKERNEL_tex(HOOKED_pos + vec2(-d.x, d.y)).x;
+    float br = POSTKERNEL_tex(HOOKED_pos + vec2(d.x, d.y)).x;
+    float cl  = POSTKERNEL_tex(HOOKED_pos).x;
+
+    float minl = min(cl, min(min(tl, tr), min(bl, br)));
+    float maxl = max(cl, max(max(tl, tr), max(bl, br)));
+
+    vec2 dir = vec2(- tl - tr + bl + br, tl - tr + bl - br);
+
+    float dirReduce = max((tl + tr + bl + br) *
+                          (0.25 * FXAA_MUL), FXAA_MIN);
+
+    float rcpDirMin = 1.0 / (min(abs(dir.x), abs(dir.y)) + dirReduce);
+    dir = min(vec2(FXAA_SPAN, FXAA_SPAN),
+              max(vec2(-FXAA_SPAN, -FXAA_SPAN),
+              dir * rcpDirMin)) * d;
+
+    vec4 rgbA = 0.5 * (
+        HOOKED_tex(HOOKED_pos + dir * -(1.0/6.0)) +
+        HOOKED_tex(HOOKED_pos + dir * (1.0/6.0)));
+    vec4 rgbB = rgbA * 0.5 + 0.25 * (
+        HOOKED_tex(HOOKED_pos + dir * -0.5) +
+        HOOKED_tex(HOOKED_pos + dir * 0.5));
+
+    //vec4 luma = vec4(0.299, 0.587, 0.114, 0.0);
+    //float lumb = dot(rgbB, luma);
+    float lumb = getLum(rgbB);
+
+    if ((lumb < minl) || (lumb > maxl)) {
+        xc = rgbA;
+    } else {
+        xc = rgbB;
+	}
+    gl_FragColor = getAverage(cc, xc);
+}
 `;
 
 const drawFrag = `
@@ -1190,15 +1175,11 @@ precision mediump float;
 
 uniform sampler2D u_texture;
 varying vec2 v_tex_pos;
-void main ()
-{
-  vec2 tmpvar_1;
-  tmpvar_1.x = v_tex_pos.x;
-  tmpvar_1.y = (1.0 - v_tex_pos.y);
-  gl_FragColor = texture2D (u_texture, tmpvar_1);
+
+void main() {
+    vec4 color = texture2D(u_texture, vec2(v_tex_pos.x, 1.0 - v_tex_pos.y));
+    gl_FragColor = color;
 }
-
-
 `;
 
 
@@ -1345,7 +1326,7 @@ Scaler.prototype.render = async function () {
     }
 
     // Check if video is paused.
-    if (this.inputMov.paused){
+    /*if (this.inputMov.paused){
         // If paused we stop rendering new frames.
         if(!this.isLoggedPaused){
             console.log("Video paused.")
@@ -1358,7 +1339,7 @@ Scaler.prototype.render = async function () {
             console.log("Video continued.")
             this.isLoggedPaused = false
         }
-    }
+    }*/
 
     if (this.inputMov) {
         updateTexture(gl, this.inputTex, this.inputMov);
@@ -1570,11 +1551,11 @@ Scaler.prototype.render = async function () {
 let globalScaler = null;
 let globalMovOrig = null;
 let globalBoard = null;
-let globalScale = 2.0;
+let globalScale = 4.0;
 let globalCurrentHref=window.location.href
 
 let globalUpdateId, globalPreviousDelta = 0;
-let globalFpsLimit = 30;    // Limit fps to 30 fps. Change here if you want more frames to be rendered. (But usually 30 fps is pretty enough for most anime as they are mostly done on threes.)
+let globalFpsLimit = 60;    // Limit fps to 30 fps. Change here if you want more frames to be rendered. (But usually 30 fps is pretty enough for most anime as they are mostly done on threes.)
 
 function getScreenRefreshRate(callback, runIndefinitely = false){
     let requestId = null;
@@ -1615,9 +1596,50 @@ function getScreenRefreshRate(callback, runIndefinitely = false){
         window.setTimeout(function(){
             window.cancelAnimationFrame(requestId);
             requestId = null;
-        }, 500);
+        }, 80);
     }
 }
+
+async function injectCanvas2() {
+    console.log('Injecting canvas...')
+
+    // Create a canvas (since video tag do not support WebGL).
+    globalMovOrig = await getVideoTag()
+
+    let div = globalMovOrig.parentElement
+    div = globalMovOrig.parentElement
+    div.style.backgroundColor = "black" // Patch for ACFun.
+
+    //if (!globalBoard){
+
+   //if(globalBoard.length == 0){
+        console.log("globalBoard not exists. Creating new one.")
+
+        globalBoard = document.createElement('canvas');
+        
+        // Make it visually fill the positioned parent
+        globalBoard.style.width = '100%';
+        globalBoard.style.height = '100%';
+        // ...then set the internal size to match
+        globalBoard.width = globalBoard.offsetWidth;
+        globalBoard.height = globalBoard.offsetHeight;
+        var posvar = globalBoard.getBoundingClientRect();
+        globalBoard.style.left = posvar.left+'px';
+        globalBoard.style.top = posvar.top+'px';
+        globalBoard.setAttribute("crossorigin",  "anonymous");
+        // Add it back to the div where contains the video tag we use as input.
+    //}
+    console.log("Adding new canvas.")
+    globalBoard.id="glwindow";
+    //style=" z-index:100; position: absolute"
+    globalBoard.style.position = "absolute";
+    globalBoard.style.zIndex = "100";
+    div.appendChild(globalBoard)
+
+    // Hide original video tag, we don't need it to be displayed.
+    globalMovOrig.style.display = 'none'
+}
+
 
 async function injectCanvas() {
     console.log('Injecting canvas...')
@@ -1626,22 +1648,21 @@ async function injectCanvas() {
     globalMovOrig = await getVideoTag()
 
     let div = globalMovOrig.parentElement
-    //while(div.className!="bilibili-player-video") {
-    //    await new Promise(r => setTimeout(r, 500));
-    //}
     div = globalMovOrig.parentElement
     div.style.backgroundColor = "black" // Patch for ACFun.
 
-    console.log("globalBoard not exists. Creating new one.")
+    if (!globalBoard){
+        console.log("globalBoard not exists. Creating new one.")
 
-    globalBoard = document.createElement('canvas');
-    // Make it visually fill the positioned parent
-    globalBoard.style.width = '100%';
-    globalBoard.style.height = '100%';
-    // ...then set the internal size to match
-    globalBoard.width = globalBoard.offsetWidth;
-    globalBoard.height = globalBoard.offsetHeight;
-    // Add it back to the div where contains the video tag we use as input.
+        globalBoard = document.createElement('canvas');
+        // Make it visually fill the positioned parent
+        globalBoard.style.width = '100%';
+        globalBoard.style.height = '100%';
+        // ...then set the internal size to match
+        globalBoard.width = globalBoard.offsetWidth;
+        globalBoard.height = globalBoard.offsetHeight;
+        // Add it back to the div where contains the video tag we use as input.
+    }
     console.log("Adding new canvas.")
     div.appendChild(globalBoard)
 
@@ -1655,7 +1676,7 @@ async function getVideoTag() {
     }
     
     globalMovOrig=document.getElementsByTagName("video")[0]
-    
+    videostream =  globalMovOrig;
     globalMovOrig.addEventListener('loadedmetadata', function () {
         globalScaler = !globalScaler?new Scaler(globalBoard.getContext('webgl')):globalScaler;
         globalScaler.inputVideo(globalMovOrig);
@@ -1667,6 +1688,12 @@ async function getVideoTag() {
     }, true);
 
     return globalMovOrig
+}
+
+async function pagechange(){
+            console.log("Page changed!")
+            await injectCanvas2()
+            globalCurrentHref=window.location.href
 }
 
 async function doFilter() {
@@ -1688,30 +1715,46 @@ async function doFilter() {
         globalUpdateId = requestAnimationFrame(render);
         let delta = currentDelta - globalPreviousDelta;
 
-        if (globalFpsLimit && delta < 1000/globalFpsLimit){
+        /*if (globalFpsLimit && delta < 1000/globalFpsLimit){
             return;
-        }
+        }*/
 
         if (globalScaler) {
             globalScaler.render();
         }
 
-        if (globalCurrentHref!=window.location.href){
-            console.log("Page changed!")
-            await injectCanvas()
-            globalCurrentHref=window.location.href
-        }
-
+    
         globalPreviousDelta = currentDelta
     }
 
     globalUpdateId = requestAnimationFrame(render);
+    console.log(globalUpdateId);
 }
 
-setTimeout(function(){
-    (async function () {
-    console.log('Bilibili_Anime4K starting...')
-    await injectCanvas()
-    doFilter()
+function initev(){
+  window.addEventListener("hashchange", pagechange, false);
+  videostream.addEventListener('play',function() {
+      //c.style.visibility = "visible";
+        // If paused we stop rendering new frames.
+        if(!this.isLoggedPaused){
+            console.log("Video paused.")
+            this.isLoggedPaused = true
+        }
+        return
+    },false);
+     videostream.addEventListener('pause',function() {
+        // Else we continue rendering new frames.
+        if(this.isLoggedPaused){
+            console.log("Video continued.")
+            this.isLoggedPaused = false
+        }
+    },false); 
+  
+}
+
+(async function () {
+    console.log('Bilibili_Anime4K starting...');
+    await injectCanvas2();
+    doFilter();
+    initev();
 })();
-}, 3000);

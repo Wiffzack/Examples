@@ -11,6 +11,8 @@
 // @copyright           bloc97, DextroseRe, NeuroWhAI, and all contributors of Anime4K
 // @include        http://*
 // @include        https://*
+// @match        https://www.youtube.com/*
+// @match        https://m.youtube.com/*
 // @grant               none
 // @license             MIT License
 // @run-at              document-idle

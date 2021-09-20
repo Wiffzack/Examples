@@ -30,6 +30,14 @@ function createShader(gl, type, source) {
     if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
         throw new Error(gl.getShaderInfoLog(shader));
     }
+  
+    //gl.compileShader(shader);
+    //gl.compileShader(fs);
+    //gl.linkProgram(prog);
+    //if (!gl.getProgramParameter(shader, gl.LINK_STATUS)) {
+    //console.error('Shader failed: ' + gl.getProgramInfoLog(shader));
+    //}
+  
 
     return shader;
 }
@@ -37,6 +45,7 @@ function createShader(gl, type, source) {
 function createProgram(gl, vertexSource, fragmentSource) {
     var program = gl.createProgram();
 
+    ext = gl.getExtension('KHR_parallel_shader_compile');
     //console.log(fragmentSource)
 
     var vertexShader = createShader(gl, gl.VERTEX_SHADER, vertexSource);
@@ -50,6 +59,17 @@ function createProgram(gl, vertexSource, fragmentSource) {
         throw new Error(gl.getProgramInfoLog(program));
     }
 
+    if (ext) {
+    if (gl.getProgramParameter(program, ext.COMPLETION_STATUS_KHR)) {
+      // Check program link status; if OK, use and draw with it.
+      console.log("KHL work");
+    }
+    } else {
+      console.log("KHL error");
+    // Program linking is synchronous.
+    // Check program link status; if OK, use and draw with it.
+    }
+  
     var wrapper = { program: program };
 
     var numAttributes = gl.getProgramParameter(program, gl.ACTIVE_ATTRIBUTES);
@@ -79,6 +99,8 @@ function createTexture(gl, filter, data, width, height) {
         gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, data);
     }
     gl.bindTexture(gl.TEXTURE_2D, null);
+    gl.texParameterf(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); 
+  
     return texture;
 }
 
@@ -1545,17 +1567,28 @@ Scaler.prototype.render = async function () {
     gl.uniform1i(drawPgm.u_texture, 0);
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
+  
+    //var sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+    //var status = gl.clientWaitSync(sync, 0, 0);
+  
+    sync = gl.fenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    gl.clientWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
+  
+   // Use invalidateFramebuffer
+    var maxColorAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);
+    gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER, [gl.COLOR_ATTACHMENT0 + maxColorAttachments]);
+    //gl.invalidateFramebuffer(gl.READ_FRAMEBUFFER,[gl.COLOR_ATTACHMENT0, gl.COLOR_ATTACHMENT1]);
 }
 
 // Parameters.
 let globalScaler = null;
 let globalMovOrig = null;
 let globalBoard = null;
-let globalScale = 4.0;
+let globalScale = 2.0;
 let globalCurrentHref=window.location.href
 
 let globalUpdateId, globalPreviousDelta = 0;
-let globalFpsLimit = 60;    // Limit fps to 30 fps. Change here if you want more frames to be rendered. (But usually 30 fps is pretty enough for most anime as they are mostly done on threes.)
+let globalFpsLimit = 30;    // Limit fps to 30 fps. Change here if you want more frames to be rendered. (But usually 30 fps is pretty enough for most anime as they are mostly done on threes.)
 
 function getScreenRefreshRate(callback, runIndefinitely = false){
     let requestId = null;
@@ -1586,11 +1619,16 @@ function getScreenRefreshRate(callback, runIndefinitely = false){
             }
         }
     
-        requestId = window.requestAnimationFrame(triggerAnimation);
+          //requestId = window.requestAnimationFrame(triggerAnimation);
+         window.requestPostAnimationFrame = function(task) {
+          requestId = window.requestAnimationFrame(triggerAnimation);
+   }
+      
     };
     
-    window.requestAnimationFrame(triggerAnimation);
-
+   window.requestPostAnimationFrame = function(task) {
+      window.requestAnimationFrame(triggerAnimation);
+   }
     // Stop after half second if it shouldn't run indefinitely
     if(!runIndefinitely){
         window.setTimeout(function(){
@@ -1612,21 +1650,27 @@ async function injectCanvas2() {
 
     //if (!globalBoard){
 
-   //if(globalBoard.length == 0){
-        console.log("globalBoard not exists. Creating new one.")
+    //if(globalBoard.length == 0){
+    console.log("globalBoard not exists. Creating new one.")
 
-        globalBoard = document.createElement('canvas');
-        
-        // Make it visually fill the positioned parent
-        globalBoard.style.width = '100%';
-        globalBoard.style.height = '100%';
-        // ...then set the internal size to match
-        globalBoard.width = globalBoard.offsetWidth;
-        globalBoard.height = globalBoard.offsetHeight;
-        var posvar = globalBoard.getBoundingClientRect();
-        globalBoard.style.left = posvar.left+'px';
-        globalBoard.style.top = posvar.top+'px';
-        globalBoard.setAttribute("crossorigin",  "anonymous");
+    globalBoard = document.createElement('canvas');
+
+    // Make it visually fill the positioned parent
+    globalBoard.style.width = '100%';
+    globalBoard.style.height = '100%';
+    // ...then set the internal size to match
+    globalBoard.width = globalBoard.offsetWidth;
+    globalBoard.height = globalBoard.offsetHeight;
+    var posvar = globalMovOrig.getBoundingClientRect();
+    globalBoard.style.left = posvar.left+'px';
+    globalBoard.style.top = posvar.top+'px';
+    globalMovOrig.setAttribute("crossorigin",  "anonymous");
+    globalBoard.setAttribute("crossorigin",  "anonymous");
+
+    //globalMovOrig.load(); // must call after setting/changing source
+    //globalMovOrig.play();
+
+  
         // Add it back to the div where contains the video tag we use as input.
     //}
     console.log("Adding new canvas.")
@@ -1637,7 +1681,8 @@ async function injectCanvas2() {
     div.appendChild(globalBoard)
 
     // Hide original video tag, we don't need it to be displayed.
-    globalMovOrig.style.display = 'none'
+    //globalMovOrig.style.display = 'none';
+    //globalMovOrig.style.visibility="hidden";
 }
 
 
@@ -1664,10 +1709,13 @@ async function injectCanvas() {
         // Add it back to the div where contains the video tag we use as input.
     }
     console.log("Adding new canvas.")
+    globalMovOrig.setAttribute("crossorigin",  "anonymous");
+    globalBoard.setAttribute("crossorigin",  "anonymous");
     div.appendChild(globalBoard)
 
     // Hide original video tag, we don't need it to be displayed.
-    globalMovOrig.style.display = 'none'
+    //globalMovOrig.style.display = 'none'
+    globalMovOrig.style.visibility="hidden";
 }
 
 async function getVideoTag() {
@@ -1678,7 +1726,7 @@ async function getVideoTag() {
     globalMovOrig=document.getElementsByTagName("video")[0]
     videostream =  globalMovOrig;
     globalMovOrig.addEventListener('loadedmetadata', function () {
-        globalScaler = !globalScaler?new Scaler(globalBoard.getContext('webgl')):globalScaler;
+        globalScaler = !globalScaler?new Scaler(globalBoard.getContext('webgl2')):globalScaler;
         globalScaler.inputVideo(globalMovOrig);
         globalScaler.resize(globalScale);
         globalScaler.scale = globalScale;
@@ -1692,9 +1740,11 @@ async function getVideoTag() {
 
 async function pagechange(){
             console.log("Page changed!")
-            await injectCanvas2()
+            await injectCanvas()
             globalCurrentHref=window.location.href
 }
+
+
 
 async function doFilter() {
     // Setting our parameters for filtering.
@@ -1713,6 +1763,7 @@ async function doFilter() {
     async function render(currentDelta) {
         // Notice that limiting the framerate here did increase performance.
         globalUpdateId = requestAnimationFrame(render);
+        //globalUpdateId = requestPostAnimationFrame(render);
         let delta = currentDelta - globalPreviousDelta;
 
         /*if (globalFpsLimit && delta < 1000/globalFpsLimit){
@@ -1728,6 +1779,7 @@ async function doFilter() {
     }
 
     globalUpdateId = requestAnimationFrame(render);
+    //globalUpdateId = requestPostAnimationFrame(render);
     console.log(globalUpdateId);
 }
 
@@ -1752,10 +1804,45 @@ function initev(){
   
 }
 
+function changepreload(){
+  try{
+      var videos = document.getElementsByTagName("video");
+      for(var i=0,l=videos.length; i<l; i++) {
+          videos[i].preload = "auto";
+      }
+  }
+  catch(e){
+    console.log("preload mod failed");
+  }
+}
+
+function getgpu(){
+var canvas = document.createElement('canvas');
+var gl;
+var debugInfo;
+var vendor;
+var renderer;
+
+try {
+    gl = canvas.getContext('webgl2') || canvas.getContext('experimental-webgl');
+} 
+catch (e) 
+{
+}
+
+if (gl) {
+    debugInfo = gl.getExtension('WEBGL_debug_renderer_info');
+    vendor = gl.getParameter(debugInfo.UNMASKED_VENDOR_WEBGL);
+    renderer = gl.getParameter(debugInfo.UNMASKED_RENDERER_WEBGL);
+}
+  
+}
+
 (async function () {
-    alert("upscale load...");
+    changepreload();
     console.log('Bilibili_Anime4K starting...');
-    await injectCanvas2();
+    await injectCanvas();
     doFilter();
     initev();
 })();
+

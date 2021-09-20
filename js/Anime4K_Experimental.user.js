@@ -114,6 +114,7 @@ function updateTexture(gl, texture, src) {
     gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, src);
 }
 
+
 function createBuffer(gl, data) {
     var buffer = gl.createBuffer();
     gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
@@ -121,10 +122,41 @@ function createBuffer(gl, data) {
     return buffer;
 }
 
+// https://developer.mozilla.org/en-US/docs/Web/API/WebGL_API/WebGL_best_practices
+function clientWaitAsync(gl, sync, flags, interval_ms) {
+  return new Promise((resolve, reject) => {
+    function test() {
+      const res = gl.clientWaitSync(sync, flags, 0);
+      if (res == gl.WAIT_FAILED) {
+        reject();
+        return;
+      }
+      if (res == gl.TIMEOUT_EXPIRED) {
+        setTimeout(test, interval_ms);
+        return;
+      }
+      resolve();
+    }
+    test();
+  });
+}
+
+async function BufferSubDataAsync(gl, target, buffer,attribute, numComponents,/* optional */ dstOffset, /* optional */ length) {
+  const sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+  gl.flush();
+
+  await clientWaitAsync(gl, sync, 0, 10);
+  gl.deleteSync(sync);
+  gl.bindBuffer(target, buffer);
+  gl.enableVertexAttribArray(attribute);
+  gl.vertexAttribPointer(attribute, numComponents, gl.FLOAT, false, 0, 0);
+}
+
 function bindAttribute(gl, buffer, attribute, numComponents) {
-    gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
-    gl.enableVertexAttribArray(attribute);
-    gl.vertexAttribPointer(attribute, numComponents, gl.FLOAT, false, 0, 0);
+    BufferSubDataAsync(gl,gl.ARRAY_BUFFER, buffer,attribute, numComponents);
+    //gl.bindBuffer(gl.ARRAY_BUFFER, buffer);
+    //gl.enableVertexAttribArray(attribute);
+    //gl.vertexAttribPointer(attribute, numComponents, gl.FLOAT, false, 0, 0);
 }
 
 function bindFramebuffer(gl, framebuffer, texture) {
@@ -1199,6 +1231,7 @@ uniform sampler2D u_texture;
 varying vec2 v_tex_pos;
 
 void main() {
+
     vec4 color = texture2D(u_texture, vec2(v_tex_pos.x, 1.0 - v_tex_pos.y));
     gl_FragColor = color;
 }
@@ -1568,11 +1601,11 @@ Scaler.prototype.render = async function () {
 
     gl.drawArrays(gl.TRIANGLES, 0, 6);
   
-    //var sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
-    //var status = gl.clientWaitSync(sync, 0, 0);
+    var sync = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
+    var status = gl.clientWaitSync(sync, 0, 0);
   
-    sync = gl.fenceSync(GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
-    gl.clientWaitSync(sync, 0, GL_TIMEOUT_IGNORED);
+    //sync = gl.fenceSync(gl.GL_SYNC_GPU_COMMANDS_COMPLETE, 0);
+    //gl.clientWaitSync(sync, 0, gl.GL_TIMEOUT_IGNORED);
   
    // Use invalidateFramebuffer
     var maxColorAttachments = gl.getParameter(gl.MAX_COLOR_ATTACHMENTS);

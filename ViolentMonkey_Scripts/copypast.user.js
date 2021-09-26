@@ -153,14 +153,18 @@ function fullscreenblur(){
 changepreload();
 changeinput();
 
+function clearit(){
+    findHighestZIndex();  
+    adblockwindows();
+    findHighestZIndex();   
+}
+
 setTimeout(function() { 
   //modifybody();
-  findHighestZIndex();  
-  adblockwindows();
-  findHighestZIndex();    
+  clearit()
 }, 8000);
 
-
+window.addEventListener("hashchange", clearit(), false);
 
 
 

@@ -1,7 +1,6 @@
 // ==UserScript==
 // @name        Simple
 // @namespace   Violentmonkey Scripts
-// @match       https://www.youtube.com/
 // @grant       none
 // @version     1.0
 // @require  http://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js 
@@ -50,7 +49,7 @@ function changeinput(){
   }
 }
 
-# Angular js ng-click
+// Angular js ng-click
 function buttoncloser(){
   try{
       var buttons = document.getElementsByTagName("button");
@@ -87,7 +86,7 @@ function modifybody(){
   document.onclick="";  
 }
 
-# doesnt solve background tricks
+// doesnt solve background tricks
 function adblockwindows(){
   try{
       var adb = document.querySelectorAll("div[class^='adblock'], div[class*=' AdBlock]");
@@ -102,8 +101,28 @@ function adblockwindows(){
   }
 }
 
+var zelement;
+function findHighestZIndex()
+{
+    var divs = document.getElementsByTagName('div');
+    var highest = 0;
+    for (var i = 0; i < divs .length; i++)
+    {
+        var zindex = divs[i].style.zIndex;
+        if (zindex > highest) {
+            zelement= divs[i];
+            highest = zindex;
+            divs[i].style.zIndex="0";
+            divs[i].style.width = '1%';
+            divs[i].style.height = '1%';
+            
+        }
+    }
+    //return highest;
+}
 
-# style.height
+
+// style.height
 function fullscreenblur(){
   try{
       var blur = document.getElementsByTagName("div");
@@ -133,7 +152,16 @@ function fullscreenblur(){
 
 changepreload();
 changeinput();
-modifybody()
+
+setTimeout(function() { 
+  //modifybody();
+  findHighestZIndex();  
+  adblockwindows();
+  findHighestZIndex();    
+}, 8000);
+
+
+
 
 
 

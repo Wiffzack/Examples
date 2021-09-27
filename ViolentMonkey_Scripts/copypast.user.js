@@ -8,18 +8,70 @@
 // @include        https://*
 // @grant               none
 // @license             MIT License
+// @grant       GM_xmlhttpRequest
 // @run-at              document-idle
 // ==/UserScript==
 
-// WebGL implementation by NeuroWhAI.
-// https://github.com/bloc97/Anime4K/blob/master/web/main.js
+// https://cdnjs.cloudflare.com/ajax/libs/blockadblock/3.2.1/blockadblock.min.js
 
+
+//var str = document.getElementsByTagName('head')[0].innerHTML;
+// das ziel ist einfach nur das das laden nicht erfolgt;
+//var newstr = str.replace(/blockadblock.min.js"/i, "test");
+//document.getElementsByTagName('head')[0].innerHTML = newstr;
+
+let text =  document.getElementsByTagName('head')[0].innerHTML;
+const toStrip = ['blockadblock','blockadblock', 'adblockDetector', 'fuckadblock','detect-adblock'];
+toStrip.forEach(x => {
+   text = text.replace(x, '');
+});
+document.getElementsByTagName('head')[0].innerHTML = text;
+
+
+
+// funktioniert nicht !!! sollte eigentlich zu beginn geladen werden aber der rest
+// der modifikationen findent nach dem laden statt
+function addScript(text) {
+    text = text.replace(/console.log("work!!!!");/g, "");
+    var newScript = document.createElement('script');
+    newScript.type = "text/javascript";
+    newScript.textContent = text;
+    var head = document.getElementsByTagName('head')[0];
+    head.appendChild(newScript);
+}
+
+window.addEventListener('beforescriptexecute', function(e) {
+    src = e.target.src;
+    if (src.search(/blockadblock.min\.js/) != -1) {
+        e.preventDefault();
+        e.stopPropagation();        
+        GM_xmlhttpRequest({
+            method: "GET",
+            url: e.target.src,
+            onload: function(response) {
+                addScript(response.responseText);
+            }
+        });
+    }
+});
+
+////////////////////////////////////////////////
+
+//rel="preload" as="video"
+// ändert das preloaden von videos auf auto 
+// das video soll vor der werbung laden 
 function changepreload(){
   try{
       var videos = document.getElementsByTagName("video");
       for(var i=0,l=videos.length; i<l; i++) {
           videos[i].preload = "auto";
       }
+      //var links = document.getElementsByTagName("link");
+      //for(var i=0,l=links.length; i<l; i++) {
+      //    links[i].rel = "preload";
+      //    links[i].as = "video";
+      //}    
+    
   }
   catch(e){
     console.log("preload mod failed");
@@ -50,6 +102,8 @@ function changeinput(){
 }
 
 // Angular js ng-click
+// nocht nicht in verwendung 
+// schließt automatisch fenster die mit angular erstellt wurden .
 function buttoncloser(){
   try{
       var buttons = document.getElementsByTagName("button");
@@ -66,7 +120,8 @@ function buttoncloser(){
   }
 }
 
-
+// entfernt addeventlistener von der seite 
+// das killt ziemlich viele adblock detector zumindest theoretisch 
 function recreateNode(el, withChildren) {
   if (withChildren) {
     el.parentNode.replaceChild(el.cloneNode(true), el);
@@ -87,6 +142,8 @@ function modifybody(){
 }
 
 // doesnt solve background tricks
+// Bsp der standart ladet einen blur effekt über den hintergrund 
+// wird mit findHighestZIndex() gefixt
 function adblockwindows(){
   try{
       var adb = document.querySelectorAll("div[class^='adblock'], div[class*=' AdBlock]");
@@ -122,13 +179,14 @@ function findHighestZIndex()
 }
 
 
-// style.height
+// macht nix
 function fullscreenblur(){
   try{
       var blur = document.getElementsByTagName("div");
       for(var i=0,l= blur.length; i<l; i++) {
-            if(blur[i].width()==="100%"){
-              blur[i].width()="0%";
+            if(blur[i].style.height ==="1px"){
+              //blur[i].width()="0%";
+              console.log("found!!");
       }
       }
   }
@@ -136,6 +194,7 @@ function fullscreenblur(){
     console.log("preload mod failed");
   }
 }
+
 
 
 
@@ -149,14 +208,23 @@ function fullscreenblur(){
 //<body oncontextmenu="return false;">
 //document.removeEventListener('contextmenu', );
 
+/// main
 
 changepreload();
 changeinput();
 
 function clearit(){
+  // hauptdomain oder sub 
+  if(window.location.pathname.length > 1) {
     findHighestZIndex();  
     adblockwindows();
     findHighestZIndex();   
+} else {
+    findHighestZIndex();  
+    adblockwindows();
+    //findHighestZIndex();   
+}
+
 }
 
 setTimeout(function() { 
@@ -164,6 +232,7 @@ setTimeout(function() {
   clearit()
 }, 8000);
 
+// wichtig da auf seiten änderungen  reagiert wird
 window.addEventListener("hashchange", clearit(), false);
 
 

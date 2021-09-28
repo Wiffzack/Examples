@@ -158,13 +158,27 @@ function adblockwindows(){
   }
 }
 
+var win = window,
+    doc = document,
+    docElem = doc.documentElement,
+    body = doc.getElementsByTagName('body')[0],
+    x = win.innerWidth || docElem.clientWidth || body.clientWidth,
+    y = win.innerHeight|| docElem.clientHeight|| body.clientHeight;
+//alert(x + ' × ' + y);
+
 var zelement;
+
 function findHighestZIndex()
 {
     var divs = document.getElementsByTagName('div');
     var highest = 0;
     for (var i = 0; i < divs .length; i++)
     {
+        // fixed adblock meldung auf gutefrage
+        if((divs[i].clientWidth  || divs[i].innerWidth ) === x || (divs[i].clientHeight || divs[i].innerHeight )  === y){
+              console.log("element removed");
+              divs[i].parentNode.removeChild(divs[i]);  
+        }
         var zindex = divs[i].style.zIndex;
         if (zindex > highest) {
             zelement= divs[i];
@@ -177,6 +191,15 @@ function findHighestZIndex()
     }
     //return highest;
 }
+
+function removediv()
+{
+    // annahme das div[0] die eigentliche seite ist
+    var divs = document.getElementsByTagName('div');
+    divs[1].parentNode.removeChild(divs[1]);
+    //return highest;
+}
+
 
 
 // macht nix
@@ -233,6 +256,7 @@ setTimeout(function() {
 }, 8000);
 
 // wichtig da auf seiten änderungen  reagiert wird
+// funtioniert glaub ich nicht in allen browsern
 window.addEventListener("hashchange", clearit(), false);
 
 
